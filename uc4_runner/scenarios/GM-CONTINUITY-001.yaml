@@ -1,0 +1,115 @@
+schema_version: 1
+id: GM-CONTINUITY-001
+version: "0.1.0"
+description: Malaysia GrabMart approval timing and follow-up status-location continuity.
+product: GrabMart
+country: MY
+
+# Alternatives inside a concept are OR; required concept lists are AND.
+# Patterns match case-insensitively after typography/Markdown normalization.
+concepts:
+  grabmart:
+    - '\bgrab\s*mart\b'
+  approval_3_5:
+    - '\b(?:approv\w*|review\w*)\b[^.!?\n]{0,100}\b(?:3|three)\s*(?:-|to)\s*(?:5|five)\s+(?:business|working)\s+days?\b'
+    - '\b(?:3|three)\s*(?:-|to)\s*(?:5|five)\s+(?:business|working)\s+days?\b[^.!?\n]{0,60}\bapprov\w*\b'
+  payout_cycle:
+    - '\bnext\s+(?:(?:regular|scheduled|normal)\s+)?(?:payout|payment)\s+cycle\b'
+    - '\bnext\s+(?:regular|scheduled|normal)\s+(?:payout|payment)\b'
+  food_approval_period:
+    - '\b(?:1|one)\s*(?:-|to)\s*(?:2|two)\s+(?:business|working)\s+days?\b'
+  portal:
+    - '\bgrab\s*merchant\s+(?:web\s+)?portal\b'
+  finance:
+    - '\bfinance\b'
+  transactions:
+    - '\btransactions?\b'
+  time_period:
+    - '\b(?:(?:time|date)\s+(?:period|range)|period|date\s+filter)\b'
+  store:
+    - '\bstores?\b'
+  cancelled_compensation:
+    - '\bcompensation\s+for\s+cancell?ed\s+orders?\b'
+  food_app_route:
+    - '\bgrab\s*merchant\s+(?:mobile\s+)?app\b'
+    - '\bgrab\s*food\s+app\b'
+    - '\b(?:open|use|launch|tap)\s+(?:the\s+)?(?:merchant|grab)\s+app\b'
+  business_line_question:
+    - '\b(?:are you|is (?:this|it)|do you (?:use|mean)|which|whether|confirm|clarify)\b[^.!?\n]{0,100}\bgrab\s*(?:food|mart)\b[^.!?\n]{0,100}\b(?:or|and)\b[^.!?\n]{0,50}\bgrab\s*(?:food|mart)\b'
+    - '\b(?:which|what)\s+(?:business\s+(?:line|type)|service|platform)\b'
+    - '\b(?:are you|confirm (?:that|if|whether) you are)\s+(?:a\s+)?grab\s*(?:mart|food)\s+merchant\b'
+  order_age_question:
+    - '\b(?:when|how long ago|how many (?:business )?days ago)\b[^.!?\n]{0,100}\bcancell?ed\b'
+    - '\bhow\s+(?:old|long)\b[^.!?\n]{0,70}\b(?:order|cancellation|since)\b'
+    - '\b(?:was|is|has)\b[^.!?\n]{0,60}\b(?:order|cancell?ed)\b[^.!?\n]{0,80}\b(?:days?|hours?|weeks?)\b[^.!?\n]*\?'
+  unsupported_prepared_claim:
+    - '\b(?:your|the|this)\s+order\s+(?:was|is|has been|had been)\s+(?:already\s+)?(?:prepared|ready)\b'
+    - '\b(?:since|as|because)\s+you(?:\s+have|\s+had|\x27ve|\x27d)?\s+(?:already\s+)?prepared\b'
+    - '\byou(?:\s+have|\s+had|\x27ve|\x27d)\s+already\s+prepared\b'
+  merchant_prepared:
+    - '\bi\s+(?:(?:have|had)\s+)?(?:already\s+)?prepared\s+(?:the|my|this)\s+order\b'
+    - '\b(?:the|my|this)\s+order\s+(?:was|is|has been)\s+(?:already\s+)?prepared\b'
+  redundant_help_question:
+    - '\bhow\s+(?:may|can)\s+i\s+(?:help|assist)\s+you(?:\s+today)?\s*\?'
+  greeting:
+    - '(?:^|[.!?]\s+|\n)\s*(?:hi|hello|hey)(?:\s+there)?\b'
+    - '(?:^|[.!?]\s+|\n)\s*good\s+(?:morning|afternoon|evening)\b'
+    - '(?:^|[.!?]\s+|\n)\s*welcome\s+(?:back|to\s+grab)\b'
+
+assertions:
+  - id: identity-continuity
+    type: session_continuity
+    reason: Preserve the run's user and session identity on every turn.
+  - id: unsupported-preparation
+    type: forbidden
+    severity: warning
+    concepts: [unsupported_prepared_claim]
+    unless_merchant_concepts: [merchant_prepared]
+    reason: The merchant never stated that the order was prepared.
+  - id: redundant-help-question
+    type: forbidden
+    severity: warning
+    concepts: [redundant_help_question]
+    reason: The merchant already asked a clear question.
+  - id: repeated-greeting
+    type: no_repeated_greeting
+    severity: warning
+    concepts: [greeting]
+    reason: Avoid restarting the greeting during an established conversation.
+
+turns:
+  - id: approval-timing
+    merchant: "Hi, I'm a GrabMart merchant in Malaysia. How long does compensation for a cancelled order usually take to be approved?"
+    assertions:
+      - id: grabmart-approval-and-payment
+        type: required
+        products: [GrabMart]
+        concepts: [grabmart, approval_3_5, payout_cycle]
+        reason: Explain GrabMart approval in 3–5 business days and payment in the next regular payout cycle.
+      - id: no-grabfood-timing
+        type: forbidden
+        products: [GrabMart]
+        concepts: [food_approval_period]
+        reason: Do not substitute GrabFood's 1–2 business-day period.
+  - id: status-location
+    merchant: "Okay, where can I check the compensation status for that order?"
+    assertions:
+      - id: portal-route
+        type: ordered
+        products: [GrabMart]
+        steps: [portal, finance, transactions, [time_period, store], cancelled_compensation]
+        reason: Give the GrabMerchant Portal route through Finance and Transactions, select the time period/store, then Compensation for cancelled orders.
+      - id: no-app-substitution
+        type: forbidden
+        products: [GrabMart]
+        concepts: [food_app_route]
+        reason: Preserve GrabMart context and use the Portal route rather than the GrabFood app route.
+      - id: no-business-line-reask
+        type: forbidden
+        concepts: [business_line_question]
+        reason: The business line was already established as GrabMart.
+      - id: answer-location-before-order-age
+        type: forbidden
+        concepts: [order_age_question]
+        unless_response_concepts: [portal, finance, transactions, time_period, store, cancelled_compensation]
+        reason: Answer the status-location question instead of redirecting into an order-age question.

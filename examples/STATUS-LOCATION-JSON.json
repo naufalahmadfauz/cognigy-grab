@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "STATUS-LOCATION-JSON",
+  "version": "0.1.0",
+  "description": "Minimal JSON scenario authoring example, not the full continuity test.",
+  "product": "GrabMart",
+  "concepts": {
+    "portal": ["\\bGrabMerchant\\s+Portal\\b"]
+  },
+  "turns": [
+    {
+      "id": "status",
+      "merchant": "I'm a GrabMart merchant in Malaysia. Where can I check cancelled-order compensation status?",
+      "assertions": [
+        {
+          "id": "portal-mentioned",
+          "type": "required",
+          "concepts": ["portal"],
+          "reason": "Mention the GrabMerchant Portal."
+        }
+      ]
+    }
+  ]
+}

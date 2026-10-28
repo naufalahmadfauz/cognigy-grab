@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uc4-runner"
+version = "0.1.0"
+description = "Deterministic Cognigy conversation testing and evidence collection"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1,<0.29",
+    "PyYAML>=6.0.2,<7",
+    "python-dotenv>=1.0.1,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3,<10"]
+
+[project.scripts]
+uc4-runner = "uc4_runner.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["uc4_runner*"]
+
+[tool.setuptools.package-data]
+uc4_runner = ["scenarios/*.yaml", "scenarios/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
