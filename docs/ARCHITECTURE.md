@@ -94,20 +94,13 @@ first-seen order. No trace is invented when the Endpoint omits one.
 
 ## Assertion and result model
 
-Scenario concepts are named regex alternative lists. Rules reference those concepts;
-the HTTP client has no compensation policy checks. Supported rule types:
-`required`, `forbidden`, `ordered`, `session_continuity`, `no_repeated_greeting`.
-Rules can be scoped by business line via `products` and downgraded to warnings.
-The optional v0.1.1 controls allow selected required concepts from merchant context,
-exclude locally negated/conditional match spans, and downgrade a forbidden behavior
-to a warning when required guidance concepts are present. These controls belong to
-the shared evaluator; scenario YAML declares the policy. See the
-[schema reference](TESTING_GUIDELINES.md#scenario-schema-v1) for precise semantics.
+Scenario YAML declares the compensation policy; `assertions.py` evaluates it.
+The HTTP client handles transport independently. When changing rule syntax or
+semantics, use the [schema reference](TESTING_GUIDELINES.md#scenario-schema-v1).
 
 An assertion records ID, type, turn, category, severity, outcome, reason, and supporting
-evidence. Assertion outcomes are PASS, FAIL, WARN, or SKIP. Actual run/turn outcomes
-are PASS, PASS_WITH_WARNINGS, FAIL, or ERROR. Dry-run/planned and skipped turns have
-null outcomes, so they cannot accidentally contribute passes.
+evidence. For result meanings and precedence, use
+[outcome interpretation](TESTING_GUIDELINES.md#outcomes-and-report-interpretation).
 
 Identity checks validate requests against the planned run and compare response
 echoes when present. Missing echoes produce a warning, not a claim of verified
@@ -140,29 +133,42 @@ consumers should require the COMPLETE manifest for aggregate results.
 
 ## Offline regrading
 
-`regrade.py` reads the source aggregate, validates recorded execution and scenario
-compatibility, and copies runs in memory. It calls the same `evaluate_run` function
-used by `runner.py`; there is no alternate grader or HTTP replay. Evaluation uses
-the saved `agentText`, not newly normalized raw data, so a normalization change is
-outside this command's scope.
+### Regrade input contract
+
+`regrade.py` accepts an EXECUTED or REGRADE aggregate with report schema version
+`1.0` and completed run records. The selected scenario must match the recorded
+scenario ID/business line and every turn ID/order/merchant message; expectations
+may change. Completed ERROR runs remain regradable, including their skipped turns.
+Supply the full aggregate: `transcripts.json` lacks execution and identity evidence
+required by the validator.
+
+Validation rejects dry-run plans and malformed or inconsistent captures before
+output creation. The output root must be outside the source aggregate's directory.
+Source files are read-only inputs.
+
+### Regrade evaluation and provenance
+
+Regrading copies runs in memory and calls the same `assertions.evaluate_run` as
+`runner.py`, without constructing an HTTP client or requiring an Endpoint URL.
+Evaluation uses saved `agentText` and merchant history. Saved text has already
+passed through redaction; missing or redacted evidence cannot be reconstructed.
+Raw responses are never normalized again, so this path cannot test normalization
+changes.
 
 The new batch has mode REGRADE, zero `requestsSent`, its own ID, source metadata and
 aggregate hash, and a `comparison` containing old/new metrics and assertion outcome
 changes. Run/user/session IDs, captured text, HTTP results, traces and capture times
 remain historical; `evaluatedAt` records the new evaluation time. Per-run scenario
-version/hash identify the new rubric. Raw evidence is copied only when currently
-opted in and available, through the existing redaction boundary.
+version/hash identify the new rubric. `source` identifies the immediate input batch,
+including `source.aggregateSha256` for the exact bytes read, even when that input
+is itself a regrade. Raw evidence is copied only when currently opted in and available,
+through the [redaction boundary](#redaction-boundary).
 
-The original aggregate's scenario ID/business line and every turn ID/order/message
-must match the selected scenario. Completed ERROR runs remain regradable: transport
-errors and skipped turns retain their meaning. Dry-run plans and malformed or
-inconsistent captures are rejected before output creation. Output inside the source
-batch directory is rejected. Existing source files are never written.
-
-`comparison.json` exposes the comparison separately; `summary.md` includes its
-table, changed assertion reasons, and explicit historical-transport labeling. The
-usual exit codes reflect updated outcomes. A valid regrade containing FAIL runs
-therefore exits 1 while still completing all reports.
+Comparison entries list added, removed, or changed assertion outcomes. For changes
+to reasons or evidence with unchanged outcomes, inspect the source and updated
+per-run assertions.
+For command execution and report review, follow the
+[offline regrade workflow](TESTING_GUIDELINES.md#offline-regrade-workflow).
 
 ## Redaction boundary
 

@@ -2,14 +2,12 @@
 
 ## Commands
 
+For installation and batch commands, use the [operator guide](../README.md).
+When validating a custom scenario, use:
+
 ```bash
-python -m uc4_runner validate
 python -m uc4_runner validate --scenario-file examples/STATUS-LOCATION-JSON.json
 python -m uc4_runner validate --scenarios-dir my-scenarios
-python -m uc4_runner run --scenario GM-CONTINUITY-001 --repeat 5 --dry-run
-python -m uc4_runner run --scenario-file my-scenarios/custom.yaml --repeat 5
-python -m uc4_runner regrade --batch reports/<original-batch> --scenario GM-CONTINUITY-001
-python -m pytest -q
 ```
 
 The default catalog is `uc4_runner/scenarios/`. To customize the packaged scenario,
@@ -99,6 +97,8 @@ Previous Agent replies never supply merchant context; unlisted required concepts
 must occur in the current Agent reply. Result reasons identify concepts supplied
 by merchant context.
 
+### Concept matching
+
 For each concept, any regex alternative suffices. Matching is Python `re` with
 IGNORECASE and MULTILINE. Unicode dashes/apostrophes and horizontal whitespace are
 normalized; Markdown `*`, `_`, and backticks are removed for matching only.
@@ -111,6 +111,10 @@ source text**. Other matches remain eligible, so one negated sentence cannot exc
 a separate affirmative sentence. Exclusions also apply when searching merchant
 context and exception conditions. They are explicit wording filters, not semantic
 negation or fuzzy matching; keep each exclusion narrow and test counterexamples.
+
+An ordered-navigation rule can find each concept's earliest match after the previous
+step. Extra mentions earlier in a reply do not invalidate a correctly ordered route.
+Grouping `[time_period, store]` permits either order within that selection step.
 
 ## GM-CONTINUITY-001 rubric
 
@@ -136,10 +140,6 @@ negation or fuzzy matching; keep each exclusion narrow and test counterexamples.
 - An unnecessary cancellation-age question accompanies otherwise complete status
   guidance. The restriction is configured for this question, not for future scenarios
   where age-based routing is necessary.
-
-An ordered-navigation rule can find each concept's earliest match after the previous
-step. Extra mentions earlier in a reply do not invalidate a correctly ordered route.
-Grouping `[time_period, store]` permits either order within that selection step.
 
 ## Outcomes and report interpretation
 
@@ -178,25 +178,31 @@ durations measure the request/response handling, excluding configured sleep dela
 
 ## Offline regrade workflow
 
-1. Select a recorded batch directory or `aggregate.json`, and a current scenario
-   with identical scenario ID/business line, turn IDs/order, and merchant messages.
-2. Run the [regrade command](../README.md#regrade-saved-evidence-offline). It calls
-   the same captured-run evaluator as REST execution, with saved normalized replies
-   and original merchant history; no network client is constructed.
-3. Inspect the new REGRADE directory's `summary.md`, `comparison.json`, and per-run
-   assertions. Verify each changed grade against its supporting reply. Review
-   outcome changes and newly detected warnings even when a run's outcome is unchanged.
+1. **Select evidence.** Check the source aggregate and selected scenario against the
+   [input contract](ARCHITECTURE.md#regrade-input-contract). Record the source batch ID,
+   scenario version/hash, and an inventory of relative paths and SHA-256 hashes for
+   every file beneath the source directory.
+   Keep that inventory outside the source directory and select an output root that
+   satisfies the contract. This step is complete when compatible inputs and the
+   integrity baseline are recorded.
+2. **Generate reports.** Run the [regrade command](../README.md#regrade-saved-evidence-offline)
+   with those inputs. Inspect the fresh directory printed by the CLI: its manifest
+   must have `executionStatus: COMPLETE`, and every source run must appear in the
+   aggregate, comparison, per-run JSON, and transcripts. Verify `mode: REGRADE`,
+   `requestsSent: 0`, and [provenance fields](ARCHITECTURE.md#regrade-evaluation-and-provenance)
+   against the source and selected scenario. Interpret the process result using
+   [exit codes](../README.md#reports); report completion and passing grades are separate checks.
+3. **Review grades and integrity.** Read `summary.md`, then check every entry in
+   `comparison.json`'s `runs[].assertionChanges` against the saved reply, merchant
+   context, and selected rule. Include added/removed assertions and warnings in runs
+   whose overall outcome stayed the same. Confirm historical transport metrics agree
+   and recompute the source file inventory: file names and hashes must match the
+   baseline. Completion requires every grade change to be explained by the rubric
+   or recorded for follow-up with its run, turn, and assertion ID.
 
-Regrading is complete when all captured runs have new assertion results and the
-new manifest is COMPLETE. Existing ERRORs/skipped turns remain historical transport
-evidence. The source aggregate hash and source/current versions identify provenance;
-original reports are untouched. HTTP counters refer to the source experiment, not
-new requests. Exit codes follow updated outcomes; FAIL runs yield exit 1.
-
-Regrades use saved redacted text and cannot reconstruct omitted raw payloads or
-test a new normalization implementation. The output directory must be outside the
-source batch. Normalized `transcripts.json` alone lacks required execution/identity
-evidence; supply the full aggregate instead.
+Report the new directory, checks performed, and unresolved grade discrepancies.
+Regrading is complete when all three steps meet their criteria; identify any unmet
+criterion as unverified.
 
 ## Development verification and future regression use
 

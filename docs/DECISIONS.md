@@ -35,24 +35,14 @@ serve as regression review targets, never as evaluator constants.
 | C: preparation patterns covered direct statements but missed “an order that was cancelled after it had already been prepared.” | Add relative-clause, passive, and preparation-before-cancellation forms. Keep the existing merchant-evidence exception; expand affirmative merchant phrasing and exclude common conditional/negated claims. The outcome stays a warning. |
 | D: `unless_response_concepts` skipped the entire age-question rule when route concepts appeared. | Replace that exception in this scenario with `warn_if_response_concepts`: the question remains observable as WARN alongside complete guidance, or FAIL when guidance is missing. Ordered route validation remains a separate hard check. |
 
-Schema version 1 retains its existing rules and defaults. The three optional
-controls are reusable across business lines. `concept_exclusions` suppresses only
-overlapping regex matches, allowing a separate positive statement elsewhere to
-remain detectable. Existing `unless_*` fields retain their skip semantics.
+The new controls are optional within schema version 1 to preserve existing scenario
+behavior. When configuring them, use the [rule fields](TESTING_GUIDELINES.md#rule-fields)
+and [concept matching](TESTING_GUIDELINES.md#concept-matching) references.
 
-The age restriction is configured only on this status-location turn. Scenarios
-requiring age-based eligibility routing can omit it or require an age question.
-This is a scenario-policy choice, not a globally prohibited question.
-
-Offline regrading shares `assertions.evaluate_run` with REST execution and uses the
-existing report writer. It reads stored normalized text, validates compatibility,
-and writes a new report directory with source hash/version and grade comparison.
-Raw evidence follows the existing opt-in retention/redaction policy. The source
-batch is immutable; original transport behavior and results are preserved.
-
-The reviewed regression fixture contains the ten original normalized replies and
-merchant messages, plus selected original assertion outcomes. Tests supply synthetic
-IDs/traces and capture metadata. No original raw payload or credential is committed.
+A shared evaluator keeps offline and REST grades comparable; a separate output
+batch preserves source evidence for review. This isolates rubric changes from
+Agent variability. Before changing this design, read the
+[regrade contract and provenance](ARCHITECTURE.md#offline-regrading).
 
 ## Human review items
 
@@ -62,9 +52,9 @@ IDs/traces and capture metadata. No original raw payload or credential is commit
    live Knowledge Store inspection. Unsupported preparation, redundant help, and
    repeated greetings default to warnings; change scenario severity if they should
    block releases.
-2. **Order-age follow-up policy.** v0.1.1 records an unnecessary age question as a
-   warning when all status-location concepts appear; missing concepts make it a
-   hard failure. Wrong route order still fails separately.
+2. **Order-age follow-up policy.** Confirm the extra age question has the intended
+   severity in the [status-location rubric](TESTING_GUIDELINES.md#gm-continuity-001-rubric).
+   Eligibility scenarios need their own age-question policy.
 3. **Deterministic matching tolerance.** The fixture is English-only. Common
    negations and App-versus-Portal clarifications now have local exclusions, but
    indirect recommendations and complex comparisons need reviewed examples.
@@ -84,9 +74,8 @@ application. The supplied CLI can execute once its Endpoint environment is popul
 
 ## Known limitations
 
-- v0.1.1 verification reuses one user-supplied live batch offline. No new live
-  experiment was executed for this fix; five recorded runs do not establish future
-  model reliability.
+- Before inferring model reliability, check the sample size and evidence scope in
+  the [dated verification record](VERIFICATION.md#v011-offline-grading-fix--2026-10-28).
 - Text-based regex evaluation cannot reliably understand negation, indirect claims,
   implication, or novel paraphrases. It can both miss defects and flag valid wording.
 - Local exclusions are syntactic: complicated clauses, quotations, double negation,
@@ -97,8 +86,8 @@ application. The supplied CLI can execute once its Endpoint environment is popul
   framed as a question. Age questions without punctuation may be missed unless
   phrased as a recognized request. Route concepts can still occur in negated text;
   context allowances and warning downgrades do not prove factual correctness.
-- Regrading uses redacted saved text and requires the same merchant script. It
-  cannot reconstruct missing evidence, undo redaction, or test normalization changes.
+- When assessing what regrading can establish, use the
+  [recorded-evidence limits](ARCHITECTURE.md#regrade-evaluation-and-provenance).
 - Normalization supports documented REST JSON and conservative stream-copy patterns;
   custom response transformers, arbitrary token overlaps, rich-card-only replies,
   and SSE/WebSocket streams need adapters.

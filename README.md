@@ -75,34 +75,25 @@ Optional flags: `--scenario-file path.yaml`, `--scenarios-dir path`,
 
 ## Regrade saved evidence offline
 
+Regrade recorded conversations without sending requests:
+
 ```bash
-python -m uc4_runner regrade --batch reports/20261028T130852758495Z-277613428598 --scenario GM-CONTINUITY-001
+python -m uc4_runner regrade --batch reports/SOURCE_BATCH --scenario GM-CONTINUITY-001
 ```
 
-On Windows, use `.\.venv\Scripts\python.exe` if the environment is not activated.
-`--batch` accepts a batch directory or its `aggregate.json`. Select another definition
-with `--scenario-file path.yaml` or `--scenarios-dir path --scenario ID`.
+Replace `SOURCE_BATCH` with your saved batch directory; `--batch` also accepts its
+`aggregate.json`. Use `python -m uc4_runner regrade --help` for scenario and output
+options.
 
-Regrade uses the **same production assertion engine** as a real run. It evaluates
-saved normalized text and merchant history, without creating an HTTP client or
-requiring an Endpoint URL. The selected scenario must retain the original ID,
-business line, turn IDs/order, and merchant messages; only expectations may change.
-Incomplete captures, dry-run plans, and incompatible scripts are rejected.
-
-Each regrade writes a fresh `reports/regrade-<timestamp>-<id>/` directory. The
-original batch stays unchanged. New reports include the source aggregate's SHA-256,
-source/current scenario versions, original-versus-updated outcomes, and assertion
-changes. Reported HTTP results and capture times remain **historical**; requests
-sent by regrading are zero. Raw response copying follows `UC4_RETAIN_RAW_EVIDENCE`
-and redaction settings, and cannot recover data absent from the original report.
-
-The supplied first-live-batch regression changes behavioral passes from **2/5 to
-3/5**, with warnings. The command exits **1** because two genuine failures remain;
-that exit code does not mean offline regrading failed to generate its reports.
+Before regrading, follow the [offline regrade workflow](docs/TESTING_GUIDELINES.md#offline-regrade-workflow)
+for source selection and completion checks. To reproduce the v0.1.1 historical
+result, use the batch and command in the [dated verification record](docs/VERIFICATION.md#v011-offline-grading-fix--2026-10-28).
 
 ## Reports
 
-Each batch creates `reports/<UTC-timestamp>-<unique-id>/`:
+Each batch creates a directory under the selected output root (default `reports/`):
+`<UTC-timestamp>-<unique-id>/` for runs or `regrade-<UTC-timestamp>-<unique-id>/` for
+regrades. Both contain:
 
 ```text
 manifest.json             # STARTED / COMPLETE; interrupted batches remain STARTED
@@ -119,7 +110,7 @@ Every attempted turn records input, normalized reply, status, timing, correlatio
 IDs, trace IDs, and assertion results. Raw JSON/body is populated only when opted
 in. Raw evidence is structurally complete **subject to redaction**, not byte-exact.
 The combined top-level Cognigy `text` is used once, without appending `outputStack`.
-See [normalization details](docs/ARCHITECTURE.md).
+For response-to-transcript rules, read [normalization](docs/ARCHITECTURE.md#normalization).
 
 `PASS_WITH_WARNINGS` counts toward the behavioral pass rate. `ERROR` runs are
 excluded from the complete-conversation behavioral denominator and counted in
@@ -138,10 +129,8 @@ files are checkpointed; only `manifest.json` with `COMPLETE` denotes a finalized
 python -m pytest -q
 ```
 
-Tests inject `httpx.MockTransport` and block real sockets. They cover successful and
-deviating replies, five isolated sessions, timeouts without retries, response parsing,
-redaction, concurrency, reporting, configuration, and the offline CLI. Reviewed text
-from the first live batch is also tested with synthetic identities and metadata.
+When adding regression coverage or checking fixture provenance, read
+[development verification](docs/TESTING_GUIDELINES.md#development-verification-and-future-regression-use).
 
 ## Troubleshooting
 
@@ -175,14 +164,8 @@ from the first live batch is also tested with synthetic identities and metadata.
 
 ## Further documentation
 
-- [Architecture and data flow](docs/ARCHITECTURE.md)
-- [Decisions, tradeoffs, and human review](docs/DECISIONS.md)
-- [Scenario schema and interpreting results](docs/TESTING_GUIDELINES.md)
-- [Recorded local verification results](docs/VERIFICATION.md)
-- [Domain vocabulary](GLOSSARY.md)
-
-The shipped expectations are derived from the UC4 specification and the v0.1.1
-grading corrections. The initial implementation used mocked responses; the user
-subsequently supplied a live batch, regraded offline for v0.1.1. See the dated
-verification record for the scope of each result. Scheduling, CI uploads, and
-unattended execution are not enabled.
+- **Implementation:** When tracing execution or evidence, read [architecture and data flow](docs/ARCHITECTURE.md).
+- **Tradeoffs:** Before revising a design choice, read [decisions and limits](docs/DECISIONS.md).
+- **Scenarios:** When authoring scenarios or interpreting grades, read [the testing guide](docs/TESTING_GUIDELINES.md).
+- **Verification:** When assessing recorded checks or historical results, read [the dated verification record](docs/VERIFICATION.md).
+- **Terminology:** When using domain terms, follow [the glossary](GLOSSARY.md).
