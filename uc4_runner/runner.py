@@ -10,7 +10,7 @@ from uuid import uuid4
 import httpx
 
 from . import __version__
-from .assertions import classify, evaluate, skipped_assertions
+from .assertions import evaluate_run, skipped_assertions
 from .client import CognigyClient
 from .config import Config, ConfigError, endpoint_url
 from .redact import Redactor
@@ -50,9 +50,6 @@ def _plan_run(scenario: Scenario, index: int, batch_id: str) -> dict:
 
 def _execute_run(scenario: Scenario, config: Config, run: dict, transport, sleep) -> dict:
     run["startedAt"] = utc_now()
-    identity = {"userId": run["userId"], "sessionId": run["sessionId"]}
-    history = []
-    merchants = []
     stopped = False
     # Each run owns its HTTP client/cookie jar as well as its Cognigy identities.
     with CognigyClient(config, transport=transport) as client:
@@ -60,9 +57,6 @@ def _execute_run(scenario: Scenario, config: Config, run: dict, transport, sleep
             index = turn["turnIndex"]
             if stopped:
                 turn["executionStatus"] = "SKIPPED"
-                turn["assertions"] = skipped_assertions(
-                    scenario, definition, index, "Earlier transport/protocol error left session state uncertain."
-                )
                 continue
             if index > 1 and config.request_delay:
                 sleep(config.request_delay)
@@ -81,28 +75,11 @@ def _execute_run(scenario: Scenario, config: Config, run: dict, transport, sleep
                 "rawEvidenceRetained": config.retain_raw,
                 "error": {"kind": reply.error_kind, "reason": reply.error_reason} if reply.error_kind else None,
             })
-            transport_check = {
-                "id": "transport.usable-reply", "type": "transport", "category": "transport",
-                "turn": index, "severity": "fail", "outcome": "FAIL" if reply.error_kind else "PASS",
-                "reason": reply.error_reason or "HTTP 2xx with a supported, nonempty text reply.", "evidence": "",
-            }
-            merchants.append(turn["merchantInput"])
             if reply.error_kind:
-                assertions = skipped_assertions(scenario, definition, index, "No usable reply; behavior not evaluated.")
                 stopped = True
-            else:
-                assertions = evaluate(
-                    scenario, definition, index, reply.text, history, merchants,
-                    requested, identity, reply.echoed_identity,
-                )
-                history.append(reply.text)
-            turn["assertions"] = [transport_check, *assertions]
-            turn["outcome"] = classify(turn["assertions"], transport_error=bool(reply.error_kind))
     run["completedAt"] = utc_now()
     run["executionStatus"] = "COMPLETED"
-    run["outcome"] = classify(
-        [assertion for turn in run["turns"] for assertion in turn["assertions"]], transport_error=stopped,
-    )
+    evaluate_run(scenario, run)
     return run
 
 

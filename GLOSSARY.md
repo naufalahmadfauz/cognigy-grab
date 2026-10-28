@@ -15,6 +15,9 @@ _Avoid_: Session when referring to an execution result
 **Batch**:
 A set of repeated runs of one scenario collected for comparison.
 
+**Regrade**:
+A new assessment of recorded conversations against revised scenario expectations, without repeating the conversations.
+
 **Turn**:
 One merchant message and the Agent's corresponding reply or replies.
 

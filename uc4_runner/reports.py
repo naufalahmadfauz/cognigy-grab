@@ -79,6 +79,8 @@ def transcript(run: dict) -> str:
         "", f"- Run ID: `{run['runId']}`", f"- User ID: `{run['userId']}`",
         f"- Session ID: `{run['sessionId']}`", f"- Started: {run['startedAt'] or 'not started'}", "",
     ]
+    if run.get("evaluationMode") == "REGRADE":
+        lines.extend([f"Offline regrade at {run['evaluatedAt']}; original outcome: **{run['originalOutcome']}**. Capture times above are historical.", ""])
     for turn in run["turns"]:
         lines.extend([
             f"## Turn {turn['turnIndex']} — {turn['executionStatus']}", "",
@@ -104,6 +106,29 @@ def summary(batch: dict) -> str:
         f"Mode: **{batch['mode']}**; runner {batch['runnerVersion']}; scenario "
         f"**{batch['scenario']['id']} v{batch['scenario']['version']}**.",
         f"Scenario SHA-256: `{batch['scenario']['sha256']}`", "",
+    ]
+    if batch["mode"] == "REGRADE":
+        original_behavior = batch["comparison"]["originalMetrics"]["behavior"]
+        lines.extend([
+            "## Offline regrade", "",
+            f"Source batch: `{batch['source']['batchId']}`; scenario v{batch['source']['scenario']['version']} → v{batch['scenario']['version']}.",
+            f"Source aggregate SHA-256: `{batch['source']['aggregateSha256']}`.", "",
+            "**Zero requests sent.** HTTP results, capture times, trace IDs, and conversations below are historical evidence.",
+            f"Behavioral pass rate: **{percent(original_behavior['passRate'])} → {percent(behavior['passRate'])}**.", "",
+            "| Run | Original | Updated |", "|---|---|---|",
+        ])
+        for change in batch["comparison"]["runs"]:
+            lines.append(f"| {change['runIndex']} | {change['originalOutcome']} | {change['updatedOutcome']} |")
+        lines.extend(["", "### Changed assertions", ""])
+        for change in batch["comparison"]["runs"]:
+            for item in change["assertionChanges"]:
+                lines.append(
+                    f"- Run {change['runIndex']}, turn {item['turn']}, `{item['assertionId']}`: "
+                    f"{item['before'] or 'absent'} → {item['after'] or 'removed'}. "
+                    f"{html.escape(item['updatedReason'] or 'Rule removed from current scenario.')}"
+                )
+        lines.append("")
+    lines.extend([
         "## Reliability", "",
         f"- Complete conversations: **{transport['completeRuns']}/{stats['executedRuns']}** "
         f"({percent(transport['completeRunRate'])}).",
@@ -117,7 +142,7 @@ def summary(batch: dict) -> str:
         f"- End-to-end pass rate across executed repetitions: {percent(behavior['endToEndPassRate'])}.", "",
         "## Runs", "", "| Run | Outcome | Session ID | Evidence |",
         "|---|---|---|---|",
-    ]
+    ])
     for run in batch["runs"]:
         index = run["runIndex"]
         lines.append(
@@ -126,7 +151,7 @@ def summary(batch: dict) -> str:
         )
     lines.extend(["", "## Recurring defects and warnings", ""])
     if not batch["defects"]:
-        lines.append("None observed." if batch["mode"] == "EXECUTED" else "Not evaluated in dry-run.")
+        lines.append("Not evaluated in dry-run." if batch["mode"] == "DRY_RUN" else "None observed.")
     for item in batch["defects"]:
         lines.append(
             f"- **{item['outcome']}** `{item['assertionId']}`, turn {item['turn']}: "
@@ -176,6 +201,8 @@ class ReportWriter:
     def finish(self, batch: dict):
         safe = self.redactor.clean(batch)
         self.write_json("aggregate.json", safe)
+        if "comparison" in safe:
+            self.write_json("comparison.json", safe["comparison"])
         conversations = []
         for run in safe["runs"]:
             conversations.append({

@@ -1,6 +1,6 @@
 schema_version: 1
 id: GM-CONTINUITY-001
-version: "0.1.0"
+version: "0.1.1"
 description: Malaysia GrabMart approval timing and follow-up status-location continuity.
 product: GrabMart
 country: MY
@@ -31,30 +31,59 @@ concepts:
   cancelled_compensation:
     - '\bcompensation\s+for\s+cancell?ed\s+orders?\b'
   food_app_route:
-    - '\bgrab\s*merchant\s+(?:mobile\s+)?app\b'
-    - '\bgrab\s*food\s+app\b'
-    - '\b(?:open|use|launch|tap)\s+(?:the\s+)?(?:merchant|grab)\s+app\b'
+    - '\b(?:open|use|launch|tap(?:\s+on)?|go\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+    - '\b(?:check|view|track|find|look\s+for)\b[^.!?\n,;]{0,100}\b(?:in|on|through|via|using)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+    - '\bstatus\s+(?:is\s+(?:available|shown)|can\s+be\s+(?:checked|viewed|found))\s+(?:in|on|through|via)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+    - '\b(?:grab\s*merchant|grab\s*food)\s+app\s*(?:>|->|→)\s*\w+'
   business_line_question:
     - '\b(?:are you|is (?:this|it)|do you (?:use|mean)|which|whether|confirm|clarify)\b[^.!?\n]{0,100}\bgrab\s*(?:food|mart)\b[^.!?\n]{0,100}\b(?:or|and)\b[^.!?\n]{0,50}\bgrab\s*(?:food|mart)\b'
     - '\b(?:which|what)\s+(?:business\s+(?:line|type)|service|platform)\b'
     - '\b(?:are you|confirm (?:that|if|whether) you are)\s+(?:a\s+)?grab\s*(?:mart|food)\s+merchant\b'
   order_age_question:
-    - '\b(?:when|how long ago|how many (?:business )?days ago)\b[^.!?\n]{0,100}\bcancell?ed\b'
-    - '\bhow\s+(?:old|long)\b[^.!?\n]{0,70}\b(?:order|cancellation|since)\b'
+    - '\b(?:when|how long ago|how many (?:business )?days ago)\b[^.!?\n]{0,100}\bcancell?ed\b[^.!?\n]*\?'
+    - '\bhow\s+(?:old|long)\b[^.!?\n]{0,70}\b(?:order|cancellation|since)\b[^.!?\n]*\?'
     - '\b(?:was|is|has)\b[^.!?\n]{0,60}\b(?:order|cancell?ed)\b[^.!?\n]{0,80}\b(?:days?|hours?|weeks?)\b[^.!?\n]*\?'
+    - '\b(?:tell|confirm|share|provide)\b[^.!?\n]{0,60}\b(?:when\b[^.!?\n]{0,60}\bcancell?ed|(?:cancellation|cancelled)\s+(?:date|time))\b'
+    - '\bwhat\s+(?:date|time|day)\b[^.!?\n]{0,80}\bcancell?ed\b[^.!?\n]*\?'
   unsupported_prepared_claim:
-    - '\b(?:your|the|this)\s+order\s+(?:was|is|has been|had been)\s+(?:already\s+)?(?:prepared|ready)\b'
+    - '\b(?:your|the|this|an?)\s+order(?:\s+that)?\s+(?:was|is|(?:has|had)\s+(?:already\s+)?been)\s+(?:already\s+)?(?:prepared|ready)\b'
+    - '\b(?:your|the|this|an?)\s+order(?:\s+that)?\s+(?:(?:was|got|has been|had been)\s+)?cancell?ed\s+(?:after|once)\s+(?:it\s+)?(?:was|(?:has|had)\s+(?:already\s+)?been)\s+(?:already\s+)?(?:prepared|ready)\b'
+    - '\border(?:\s+that)?\s+(?:(?:was|got)\s+)?cancell?ed\s+after\s+(?:preparation|being\s+prepared)\b'
     - '\b(?:since|as|because)\s+you(?:\s+have|\s+had|\x27ve|\x27d)?\s+(?:already\s+)?prepared\b'
     - '\byou(?:\s+have|\s+had|\x27ve|\x27d)\s+already\s+prepared\b'
   merchant_prepared:
-    - '\bi\s+(?:(?:have|had)\s+)?(?:already\s+)?prepared\s+(?:the|my|this)\s+order\b'
-    - '\b(?:the|my|this)\s+order\s+(?:was|is|has been)\s+(?:already\s+)?prepared\b'
+    - '\b(?:i|we)(?:\s+have|\s+had|\x27ve|\x27d)?\s+(?:already\s+)?prepared\s+(?:(?:the|my|our|this)\s+order|it)\b'
+    - '\b(?:(?:the|my|our|this)\s+order|it)\s+(?:was|is|(?:has|had)\s+(?:already\s+)?been)\s+(?:already\s+)?(?:prepared|ready)\b'
   redundant_help_question:
     - '\bhow\s+(?:may|can)\s+i\s+(?:help|assist)\s+you(?:\s+today)?\s*\?'
   greeting:
     - '(?:^|[.!?]\s+|\n)\s*(?:hi|hello|hey)(?:\s+there)?\b'
     - '(?:^|[.!?]\s+|\n)\s*good\s+(?:morning|afternoon|evening)\b'
     - '(?:^|[.!?]\s+|\n)\s*welcome\s+(?:back|to\s+grab)\b'
+
+# Local exclusions suppress overlapping matches, not other claims in the reply.
+# They cover common negation/conditional forms, not general language understanding.
+concept_exclusions:
+  grabmart:
+    - '\bnot\s+(?:a\s+)?grab\s*mart\b'
+  approval_3_5:
+    - '\b(?:not|never)\b[^.!?\n,;]*\b(?:3|three)\s*(?:-|to)\s*(?:5|five)\s+(?:business|working)\s+days?\b'
+  payout_cycle:
+    - '\b(?:not|never)\b[^.!?\n,;]*\bnext\s+(?:(?:regular|scheduled|normal)\s+)?(?:payout|payment)(?:\s+cycle)?\b'
+  food_approval_period:
+    - '\b(?:not|rather than|instead of)\s+(?:1|one)\s*(?:-|to)\s*(?:2|two)\s+(?:business|working)\s+days?\b'
+  food_app_route:
+    - '\b(?:are you (?:currently )?(?:on|using)|(?:do|did) you (?:currently )?(?:use|open))\b[^.!?\n]*\?'
+    - '\b(?:do not|don\x27t|never|cannot|can\x27t|should not|shouldn\x27t|must not|mustn\x27t)\s+(?:open|use|launch|tap|check|view|track|find|go|log)\b[^.!?\n,;]*'
+    - '\bnot\s+(?:in|on|through|via|using)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+  unsupported_prepared_claim:
+    - '\b(?:if|unless|whether)\b[^.!?\n,;]*\b(?:prepared|ready|preparation)\b'
+    - '\b(?:not|never|don\x27t|didn\x27t|can\x27t|cannot)\b[^.!?\n,;]*\b(?:prepared|ready|preparation)\b'
+  merchant_prepared:
+    - '\b(?:if|unless|whether)\b[^.!?\n,;]*\b(?:prepared|ready|preparation)\b'
+    - '\b(?:not|never|don\x27t|didn\x27t|can\x27t|cannot)\b[^.!?\n,;]*\b(?:prepared|ready|preparation)\b'
+  order_age_question:
+    - '\b(?:do not|don\x27t|no need to)\s+(?:need\s+to\s+)?(?:tell|confirm|share|provide)\b[^.!?\n,;]*'
 
 assertions:
   - id: identity-continuity
@@ -85,6 +114,7 @@ turns:
         type: required
         products: [GrabMart]
         concepts: [grabmart, approval_3_5, payout_cycle]
+        allow_merchant_context: [grabmart]
         reason: Explain GrabMart approval in 3–5 business days and payment in the next regular payout cycle.
       - id: no-grabfood-timing
         type: forbidden
@@ -111,5 +141,5 @@ turns:
       - id: answer-location-before-order-age
         type: forbidden
         concepts: [order_age_question]
-        unless_response_concepts: [portal, finance, transactions, time_period, store, cancelled_compensation]
-        reason: Answer the status-location question instead of redirecting into an order-age question.
+        warn_if_response_concepts: [portal, finance, transactions, time_period, store, cancelled_compensation]
+        reason: Avoid an unnecessary cancellation-age question; missing status guidance makes this a hard deviation.

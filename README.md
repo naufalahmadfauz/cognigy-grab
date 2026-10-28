@@ -1,4 +1,4 @@
-# UC4 Automated Test Runner v0.1
+# UC4 Automated Test Runner v0.1.1
 
 A standalone Python CLI for repeated Cognigy REST conversations, deterministic
 behavior checks, and redacted evidence reports. Includes `GM-CONTINUITY-001`:
@@ -73,6 +73,33 @@ Optional flags: `--scenario-file path.yaml`, `--scenarios-dir path`,
 `--output-dir reports`, `--concurrency 2`. Validation accepts `--scenario-file` or
 `--scenarios-dir` too. `python -m uc4_runner --help` lists commands.
 
+## Regrade saved evidence offline
+
+```bash
+python -m uc4_runner regrade --batch reports/20261028T130852758495Z-277613428598 --scenario GM-CONTINUITY-001
+```
+
+On Windows, use `.\.venv\Scripts\python.exe` if the environment is not activated.
+`--batch` accepts a batch directory or its `aggregate.json`. Select another definition
+with `--scenario-file path.yaml` or `--scenarios-dir path --scenario ID`.
+
+Regrade uses the **same production assertion engine** as a real run. It evaluates
+saved normalized text and merchant history, without creating an HTTP client or
+requiring an Endpoint URL. The selected scenario must retain the original ID,
+business line, turn IDs/order, and merchant messages; only expectations may change.
+Incomplete captures, dry-run plans, and incompatible scripts are rejected.
+
+Each regrade writes a fresh `reports/regrade-<timestamp>-<id>/` directory. The
+original batch stays unchanged. New reports include the source aggregate's SHA-256,
+source/current scenario versions, original-versus-updated outcomes, and assertion
+changes. Reported HTTP results and capture times remain **historical**; requests
+sent by regrading are zero. Raw response copying follows `UC4_RETAIN_RAW_EVIDENCE`
+and redaction settings, and cannot recover data absent from the original report.
+
+The supplied first-live-batch regression changes behavioral passes from **2/5 to
+3/5**, with warnings. The command exits **1** because two genuine failures remain;
+that exit code does not mean offline regrading failed to generate its reports.
+
 ## Reports
 
 Each batch creates `reports/<UTC-timestamp>-<unique-id>/`:
@@ -81,6 +108,7 @@ Each batch creates `reports/<UTC-timestamp>-<unique-id>/`:
 manifest.json             # STARTED / COMPLETE; interrupted batches remain STARTED
 scenario.json             # versioned, redacted assertion definition
 aggregate.json            # metrics, configuration, all runs and conversations
+comparison.json           # regrades only: original/current metrics and assertion changes
 summary.md                # rates, per-run outcomes, defects, supporting replies/traces
 transcripts.json          # all normalized conversations without raw payloads
 runs/run-001.json ...     # full per-run evidence (five files with --repeat 5)
@@ -112,7 +140,8 @@ python -m pytest -q
 
 Tests inject `httpx.MockTransport` and block real sockets. They cover successful and
 deviating replies, five isolated sessions, timeouts without retries, response parsing,
-redaction, concurrency, reporting, configuration, and the offline CLI.
+redaction, concurrency, reporting, configuration, and the offline CLI. Reviewed text
+from the first live batch is also tested with synthetic identities and metadata.
 
 ## Troubleshooting
 
@@ -152,6 +181,8 @@ redaction, concurrency, reporting, configuration, and the offline CLI.
 - [Recorded local verification results](docs/VERIFICATION.md)
 - [Domain vocabulary](GLOSSARY.md)
 
-The shipped expectations are derived from the supplied UC4 specification. This
-implementation's tests are mocked; no live Cognigy experiment is claimed. Scheduling,
-CI uploads, and unattended execution are not enabled.
+The shipped expectations are derived from the UC4 specification and the v0.1.1
+grading corrections. The initial implementation used mocked responses; the user
+subsequently supplied a live batch, regraded offline for v0.1.1. See the dated
+verification record for the scope of each result. Scheduling, CI uploads, and
+unattended execution are not enabled.

@@ -1,4 +1,4 @@
-# Architecture — v0.1
+# Architecture — v0.1.1
 
 ## Components
 
@@ -10,8 +10,13 @@ CLI (cli.py)
        └─ one sequential conversation per worker
             ├─ Cognigy REST POST (client.py)
             ├─ transcript normalization + trace extraction (normalize.py)
-            └─ deterministic assertions (assertions.py)
+            └─ shared captured-run evaluation (assertions.py)
        └─ metrics + redaction + artifact writing (reports.py, redact.py)
+
+CLI regrade (regrade.py)
+  ├─ recorded aggregate JSON → compatibility validation → copied run evidence
+  ├─ same captured-run evaluation (assertions.py)
+  └─ grade comparison + same report writer → fresh REGRADE directory
 ```
 
 `uc4_runner/scenarios/GM-CONTINUITY-001.yaml` is packaged with the application so
@@ -32,9 +37,10 @@ database, or external reporting service. Only a real `run` constructs an HTTP cl
    are correlated in reports rather than injected into Flow data.
 5. Capture response status, JSON or non-JSON body, timing, echoed identities, and
    trace IDs. Interpret only documented user-facing fields for assertions.
-6. Evaluate hard expectations and optional warnings. On transport/protocol error,
-   stop that session and record subsequent turns as SKIPPED. A behavioral failure
-   does not suppress follow-up turns. Other independent runs continue.
+6. On transport/protocol error, stop that session and record subsequent turns as
+   SKIPPED. Grade the captured run with `assertions.evaluate_run`, preserving
+   chronological merchant/reply context. A behavioral failure does not suppress
+   follow-up turns. Other independent runs continue.
 7. Redact evidence before writing per-run checkpoints and transcripts. Finalize
    aggregate JSON, Markdown summary, and the COMPLETE manifest.
 
@@ -92,6 +98,11 @@ Scenario concepts are named regex alternative lists. Rules reference those conce
 the HTTP client has no compensation policy checks. Supported rule types:
 `required`, `forbidden`, `ordered`, `session_continuity`, `no_repeated_greeting`.
 Rules can be scoped by business line via `products` and downgraded to warnings.
+The optional v0.1.1 controls allow selected required concepts from merchant context,
+exclude locally negated/conditional match spans, and downgrade a forbidden behavior
+to a warning when required guidance concepts are present. These controls belong to
+the shared evaluator; scenario YAML declares the policy. See the
+[schema reference](TESTING_GUIDELINES.md#scenario-schema-v1) for precise semantics.
 
 An assertion records ID, type, turn, category, severity, outcome, reason, and supporting
 evidence. Assertion outcomes are PASS, FAIL, WARN, or SKIP. Actual run/turn outcomes
@@ -126,6 +137,32 @@ All artifact files use atomic replace within the batch directory. The manifest i
 marked COMPLETE only after final reports exist. A process interruption can leave
 STARTED batches with completed per-run evidence and temporary/incomplete files;
 consumers should require the COMPLETE manifest for aggregate results.
+
+## Offline regrading
+
+`regrade.py` reads the source aggregate, validates recorded execution and scenario
+compatibility, and copies runs in memory. It calls the same `evaluate_run` function
+used by `runner.py`; there is no alternate grader or HTTP replay. Evaluation uses
+the saved `agentText`, not newly normalized raw data, so a normalization change is
+outside this command's scope.
+
+The new batch has mode REGRADE, zero `requestsSent`, its own ID, source metadata and
+aggregate hash, and a `comparison` containing old/new metrics and assertion outcome
+changes. Run/user/session IDs, captured text, HTTP results, traces and capture times
+remain historical; `evaluatedAt` records the new evaluation time. Per-run scenario
+version/hash identify the new rubric. Raw evidence is copied only when currently
+opted in and available, through the existing redaction boundary.
+
+The original aggregate's scenario ID/business line and every turn ID/order/message
+must match the selected scenario. Completed ERROR runs remain regradable: transport
+errors and skipped turns retain their meaning. Dry-run plans and malformed or
+inconsistent captures are rejected before output creation. Output inside the source
+batch directory is rejected. Existing source files are never written.
+
+`comparison.json` exposes the comparison separately; `summary.md` includes its
+table, changed assertion reasons, and explicit historical-transport labeling. The
+usual exit codes reflect updated outcomes. A valid regrade containing FAIL runs
+therefore exits 1 while still completing all reports.
 
 ## Redaction boundary
 

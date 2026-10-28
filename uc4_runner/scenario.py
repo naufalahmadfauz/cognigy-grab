@@ -75,13 +75,17 @@ class Scenario:
     def concepts(self) -> dict[str, list[str]]:
         return self.definition["concepts"]
 
+    @property
+    def concept_exclusions(self) -> dict[str, list[str]]:
+        return self.definition.get("concept_exclusions", {})
+
     def rules_for(self, turn: dict) -> list[dict]:
         return self.definition.get("assertions", []) + turn["assertions"]
 
 
 def parse_scenario(data: object) -> Scenario:
     required = {"schema_version", "id", "version", "product", "concepts", "turns"}
-    _mapping(data, required | {"description", "country", "assertions"}, required, "scenario")
+    _mapping(data, required | {"description", "country", "assertions", "concept_exclusions"}, required, "scenario")
     if type(data["schema_version"]) is not int or data["schema_version"] != 1:
         raise ScenarioError("scenario.schema_version must be 1.")
     for key in ("id", "version", "product", "description", "country"):
@@ -92,8 +96,7 @@ def parse_scenario(data: object) -> Scenario:
     concepts = data["concepts"]
     if not isinstance(concepts, dict) or not concepts:
         raise ScenarioError("scenario.concepts must be a nonempty mapping.")
-    for name, patterns in concepts.items():
-        _string(name, "concept name")
+    def validate_patterns(patterns, name):
         if not isinstance(patterns, list) or not patterns:
             raise ScenarioError("Each concept needs a nonempty list of regex alternatives.")
         for pattern in patterns:
@@ -103,6 +106,15 @@ def parse_scenario(data: object) -> Scenario:
                     raise ScenarioError(f"Concept {name} must not match empty text.")
             except re.error:
                 raise ScenarioError(f"Concept {name} has an invalid regular expression.") from None
+
+    for name, patterns in concepts.items():
+        _string(name, "concept name")
+        validate_patterns(patterns, name)
+    exclusions = data.get("concept_exclusions", {})
+    if not isinstance(exclusions, dict) or exclusions.keys() - concepts.keys():
+        raise ScenarioError("concept_exclusions must map existing concept names to regex lists.")
+    for name, patterns in exclusions.items():
+        validate_patterns(patterns, name)
 
     def references(names, where):
         if not isinstance(names, list) or not names:
@@ -117,8 +129,8 @@ def parse_scenario(data: object) -> Scenario:
         for rule in items:
             base = {"id", "type", "severity", "reason", "products"}
             specific = {
-                "required": {"concepts"},
-                "forbidden": {"concepts", "unless_merchant_concepts", "unless_response_concepts"},
+                "required": {"concepts", "allow_merchant_context"},
+                "forbidden": {"concepts", "unless_merchant_concepts", "unless_response_concepts", "warn_if_response_concepts"},
                 "ordered": {"steps"},
                 "session_continuity": set(),
                 "no_repeated_greeting": {"concepts"},
@@ -149,9 +161,13 @@ def parse_scenario(data: object) -> Scenario:
                     raise ScenarioError(f"{where}: ordered needs at least two steps.")
                 for step in rule["steps"]:
                     references([step] if isinstance(step, str) else step, where)
-            for condition in ("unless_merchant_concepts", "unless_response_concepts"):
+            for condition in ("unless_merchant_concepts", "unless_response_concepts", "warn_if_response_concepts", "allow_merchant_context"):
                 if condition in rule:
                     references(rule[condition], where)
+            if "allow_merchant_context" in rule and not set(rule["allow_merchant_context"]) <= set(rule["concepts"]):
+                raise ScenarioError(f"{where}: allow_merchant_context must be a subset of required concepts.")
+            if "warn_if_response_concepts" in rule and rule.get("severity", "fail") != "fail":
+                raise ScenarioError(f"{where}: warn_if_response_concepts applies to hard forbidden rules.")
         return ids
 
     common_ids = rules(data.get("assertions", []), "scenario.assertions")

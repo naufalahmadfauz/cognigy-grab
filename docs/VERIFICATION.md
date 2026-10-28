@@ -50,3 +50,81 @@ PLANNED, not behavioral passes.
 or modified. These results verify the local implementation against mocked responses,
 not the actual Flow's behavioral reliability. The first real batch requires the
 existing POC Endpoint URL in the user's local environment.
+
+---
+
+## v0.1.1 offline grading fix — 2026-10-28
+
+This section records a later verification against the first live batch supplied
+by the user. The initial v0.1 results above retain their original historical scope.
+All v0.1.1 checks ran locally on Windows/CPython 3.15.2 with **zero Cognigy requests**.
+
+### Reproduction and checks
+
+The initial focused command,
+`python -m pytest -q tests/test_grading_accuracy.py`, failed all four minimal
+reproductions before the fix: product echo, App clarification, unsupported
+preparation, and the hidden follow-up age question. Independent configuration probes
+confirmed each cause; see [grading decisions](DECISIONS.md#v011-grading-corrections).
+
+| Check | Result |
+|---|---|
+| Full suite: `python -m pytest -q` | **237 passed** in 3.23 seconds; 99 added cases, one existing age-question expectation updated |
+| New grading/regrade regression files | **90 passed** in 1.86 seconds; remaining 9 new cases validate schema controls |
+| `python -m uc4_runner validate` | Passed with scenario 0.1.1 |
+| Five-run dry-run | Passed; batch `20261028T143132540071Z-646db957522e`, no requests or evaluated outcomes |
+| Historical regrade through the production evaluator | Passed; **3/5 behavioral passes with warnings**, two genuine FAILs |
+| Report generation | Five per-run JSON files and five normalized transcripts, aggregate, comparison, summary and COMPLETE manifest verified |
+| Source immutability | SHA-256 comparison of **all 15 original files**: byte-identical |
+| Reviewed fixture fidelity | All ten merchant/reply pairs and selected original assertion outcomes match the saved batch |
+| Captured evidence preservation | Historical HTTP metrics, response text, IDs, trace IDs, durations, raw fields, and capture timestamps unchanged in this regrade |
+| Offline packaging | v0.1.1 wheel built with cached tooling and no package-index access; separate installation validated and regraded the historical batch outside the checkout |
+| Local editable installation | Updated to v0.1.1 using `--no-index --no-deps --no-build-isolation` |
+| Documentation | Ten relative links/anchors verified; Git whitespace check passed |
+
+### Original versus updated grades
+
+Source batch: `20261028T130852758495Z-277613428598`, scenario 0.1.0.
+
+Source aggregate SHA-256:
+`be37ee95cc418922ff6bdc7c825d580174e12c11dc172b05c98dfc07923ad474`.
+
+Regrade directory:
+`reports/regrade-20261028T142639538423Z-86c7983e4928/` (git-ignored).
+
+| Run | Original | v0.1.1 | Findings |
+|---|---|---|---|
+| 1 | FAIL | FAIL | Incomplete Portal navigation remains a failure; App clarification is no longer wrong-route evidence |
+| 2 | FAIL | PASS_WITH_WARNINGS | Correct timing/payment accepted using merchant-established GrabMart context |
+| 3 | PASS_WITH_WARNINGS | PASS_WITH_WARNINGS | Correct guidance; newly detected preparation assumption |
+| 4 | PASS_WITH_WARNINGS | PASS_WITH_WARNINGS | Correct route; unnecessary age question now separately warned |
+| 5 | FAIL | FAIL | Required approval timeline/payment guidance absent |
+
+- Behavioral passes including warnings: **2/5 (40%) → 3/5 (60%)**.
+- Historical transport: **10/10 HTTP successes and usable replies**, unchanged.
+- Unsupported preparation: newly detected on turn 1 of **all five runs**.
+- Redundant help question: existing warning remains on turn 1 of all five runs.
+- Unnecessary age question after complete guidance: WARN on run 4, turn 2.
+- No hard-coded per-run outcomes or expected pass counts exist in the evaluator.
+
+### Reproduce
+
+From the repository root in PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m uc4_runner validate
+.\.venv\Scripts\python.exe -m uc4_runner run --scenario GM-CONTINUITY-001 --repeat 5 --dry-run
+.\.venv\Scripts\python.exe -m uc4_runner regrade --batch reports/20261028T130852758495Z-277613428598 --scenario GM-CONTINUITY-001
+```
+
+The regrade command writes a new directory each time and exits **1** for the two
+remaining behavioral FAILs. Read its `summary.md` and `comparison.json`; original
+files remain in place. The committed reviewed transcript fixture allows the suite
+to run without the local, git-ignored live batch.
+
+These results establish the grading correction on recorded conversations and
+additional paraphrase/negative examples. They do not establish perfect semantic
+accuracy or a new live experiment. Remaining risks are documented under
+[known limitations](DECISIONS.md#known-limitations). No deployed Cognigy resources
+were modified.

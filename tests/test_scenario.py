@@ -29,6 +29,15 @@ def test_yaml_and_json_have_same_semantic_hash(tmp_path, scenario):
     lambda data: data["turns"][0].update(assertions=[]),
     lambda data: data["turns"][1]["assertions"][0].update(steps=["portal"]),
     lambda data: data["turns"][1]["assertions"][0].update(steps=["portal", ["unknown"]]),
+    lambda data: data.update(concept_exclusions=[]),
+    lambda data: data.update(concept_exclusions={"unknown": ["word"]}),
+    lambda data: data.update(concept_exclusions={"grabmart": ["["]}),
+    lambda data: data.update(concept_exclusions={"grabmart": [".*"]}),
+    lambda data: data["turns"][0]["assertions"][0].update(allow_merchant_context=["unknown"]),
+    lambda data: data["turns"][0]["assertions"][0].update(allow_merchant_context=["portal"]),
+    lambda data: data["turns"][0]["assertions"][1].update(allow_merchant_context=["grabmart"]),
+    lambda data: data["turns"][1]["assertions"][-1].update(warn_if_response_concepts=["unknown"]),
+    lambda data: data["turns"][1]["assertions"][-1].update(severity="warning"),
 ])
 def test_invalid_scenarios_fail_before_execution(scenario, change):
     data = deepcopy(scenario.definition)

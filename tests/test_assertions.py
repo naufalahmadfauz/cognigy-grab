@@ -61,10 +61,10 @@ def test_period_and_store_can_be_in_either_order(scenario, good_replies):
     assert classify(check(scenario, text, 2)) == "PASS"
 
 
-def test_order_age_followup_after_complete_answer_is_allowed(scenario, good_replies):
+def test_order_age_followup_after_complete_answer_is_warned(scenario, good_replies):
     items = check(scenario, good_replies[1] + " When was the order cancelled?", 2)
-    assert outcomes(items)["answer-location-before-order-age"] == "SKIP"
-    assert classify(items) == "PASS"
+    assert outcomes(items)["answer-location-before-order-age"] == "WARN"
+    assert classify(items) == "PASS_WITH_WARNINGS"
 
 
 @pytest.mark.parametrize("extra,warning_id", [
