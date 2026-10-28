@@ -1,24 +1,13 @@
-# Domain Docs
+# Domain guidance
 
-## Layout
+1. Before exploration, read the root [glossary](../../GLOSSARY.md) and relevant
+   records in `docs/adr/`, when present. Proceed with available sources if one is absent.
+2. Use canonical glossary terms across code, scenarios, tests, documentation, and
+   issues. For missing or conflicting domain meanings, use `/domain-modeling` to
+   resolve them and capture the definitions in the glossary.
+3. If a proposed change conflicts with an ADR, identify the record and explain why
+   its decision should be reopened before implementing the conflicting change.
 
-This repository is single-context:
-
-- `GLOSSARY.md` at the repository root defines domain vocabulary.
-- `docs/adr/` holds architecture decision records.
-
-## Before exploring
-
-Read `GLOSSARY.md` and the ADRs relevant to the area you are about to work in.
-
-If these files or directories are absent, proceed silently. The `/domain-modeling` skill creates them lazily when terms or decisions are resolved.
-
-## Use the glossary's vocabulary
-
-Use the glossary's terms when naming domain concepts in issues, proposals, hypotheses, and tests. Follow its guidance on synonyms.
-
-If a needed concept is missing, reconsider whether it belongs to the domain; note genuine vocabulary gaps for `/domain-modeling`.
-
-## Flag ADR conflicts
-
-If a proposal contradicts an existing ADR, identify the ADR and explain why the decision should be reopened.
+Terminology work is complete when every introduced or changed domain term has a
+canonical glossary definition. Keep implementation rationale in
+[decisions](../DECISIONS.md) or an applicable ADR.

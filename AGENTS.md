@@ -1,13 +1,14 @@
-## Agent skills
+# Agent guide
 
-### Issue tracker
+## Scope
 
-Issues and specs use GitHub Issues. Before tracker operations, read `docs/agents/issue-tracker.md`.
+Develop the standalone UC4 runner; keep Cognigy administration read-only.
+Use mocked Endpoint requests for development. Real conversation requests require
+explicit user authorization, including requests using Cognigy Test Mode.
 
-### Triage labels
+## Context pointers
 
-Use the five canonical triage labels. Before triaging or changing labels, read `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context: root `GLOSSARY.md` + `docs/adr/`. Before exploring the codebase, read `docs/agents/domain.md`.
+- **Domain:** Before codebase exploration, read [domain guidance](docs/agents/domain.md).
+- **Runner:** Before changing code, scenarios, tests, or report formats, read [runner workflow](docs/agents/runner.md).
+- **Tracker:** Before GitHub Issue operations, read [tracker conventions](docs/agents/issue-tracker.md).
+- **Triage:** Before triaging or changing labels, read [label mapping](docs/agents/triage-labels.md).
