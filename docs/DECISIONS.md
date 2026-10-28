@@ -10,7 +10,7 @@ infrastructure or hard-to-reverse architectural commitment requiring an ADR.
 | Fresh synthetic user/session IDs and HTTP client per run | Prevents conversation and cookie carryover. Stable IDs inside the run exercise follow-up continuity. |
 | No POST retries, including HTTP errors and timeouts | A duplicate turn can change behavior and invalidate the experiment. Sacrifices automatic recovery; start a fresh run after review. |
 | Stop only the affected session after transport/protocol error | Unknown session state makes later turns uninterpretable. Continue independent repetitions to measure reliability. |
-| Record failures while continuing after behavioral deviations | Captures the complete multi-turn behavior rather than hiding later context failures. |
+| Record failures while continuing after behavioral deviations by default | Captures the complete multi-turn behavior rather than hiding later context failures. v0.2 permits explicit advancement gates as described below. |
 | Deterministic scenario assertions | Reproducible and independent of LLM APIs. Regex concepts approximate behavior; they are not semantic proof and need wording calibration. |
 | Require ordered Portal navigation | Merely mentioning Finance and Transactions somewhere is insufficient. Time period/store share a step and may appear in either order. |
 | Raw evidence disabled by default | Normalized evidence remains available while minimizing retention. Full redacted response structure is available by explicit opt-in. |
@@ -43,6 +43,16 @@ A shared evaluator keeps offline and REST grades comparable; a separate output
 batch preserves source evidence for review. This isolates rubric changes from
 Agent variability. Before changing this design, read the
 [regrade contract and provenance](ARCHITECTURE.md#offline-regrading).
+
+## v0.2 guarded progression
+
+| Decision | Reason and tradeoff |
+|---|---|
+| Only an explicit advancement gate stops behavioral progression | Other assertions still grade the reply without suppressing later evidence. Ungated scenarios retain their fixed-turn behavior. |
+| Reference existing hard response assertions | Reuses matching, exclusions, reasons, and defect counts. Restricting gates to unconditional checks avoids treating a WARN, SKIP, or merchant-supplied fact as permission to acknowledge an instruction. |
+| An unmet gate is a hard behavioral failure | The Agent supplied a usable but unexpected reply. Transport/protocol failures, including empty replies, remain ERRORs. |
+| The demonstration requires one navigation step at a time | Giving the full route is correct navigation but violates the merchant's requested pacing; the scripted acknowledgment would otherwise be misleading. |
+| Regrading must preserve the captured progression path | Revised gates may change grading only when the recorded executed/skipped turns still fit. Reject incompatible paths rather than infer missing replies or discard captured turns. |
 
 ## Human review items
 
@@ -88,6 +98,10 @@ application. The supplied CLI can execute once its Endpoint environment is popul
   context allowances and warning downgrades do not prove factual correctness.
 - When assessing what regrading can establish, use the
   [recorded-evidence limits](ARCHITECTURE.md#regrade-evaluation-and-provenance).
+- The two-turn Portal demo recognizes English instruction verbs and known menu
+  labels. It can miss unusual paraphrases or flag harmless references to later
+  labels; it does not prove that every possible reply contains exactly one action.
+  A scripted acknowledgment represents the scenario, not a browser interaction.
 - Normalization supports documented REST JSON and conservative stream-copy patterns;
   custom response transformers, arbitrary token overlaps, rich-card-only replies,
   and SSE/WebSocket streams need adapters.

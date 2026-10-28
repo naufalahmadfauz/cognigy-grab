@@ -56,7 +56,7 @@ turns:
 | `concepts` | yes | Nonempty mapping of name → nonempty regex alternative list |
 | `concept_exclusions` | no | Existing concept name → nonempty regex list of locally excluded match spans |
 | `assertions` | no | Rules applied to every turn |
-| `turns` | yes | Nonempty ordered list of `{id, merchant, assertions}` |
+| `turns` | yes | Nonempty ordered list of `{id, merchant, assertions}`, with optional `advance_when` per turn |
 
 Each turn needs a unique string `id`, nonempty merchant message, and assertions
 list. At least one applicable hard behavioral rule is required per turn, including
@@ -96,6 +96,48 @@ concepts can be satisfied by merchant inputs up to and including the current tur
 Previous Agent replies never supply merchant context; unlisted required concepts
 must occur in the current Agent reply. Result reasons identify concepts supplied
 by merchant context.
+
+### Advancement conditions
+
+Since v0.2, a non-final turn may declare `advance_when`: a nonempty list of unique
+assertion IDs from that turn's local or common assertions. All referenced assertions
+must PASS before the next scripted merchant message is sent. For example, this turn
+references its existing Finance check:
+
+```yaml
+- id: open-finance
+  merchant: "I'm already in GrabMerchant Portal. Give me the first navigation step only."
+  advance_when: [finance-step]
+  assertions:
+    - id: finance-step
+      type: required
+      concepts: [finance_instruction]
+      reason: Instruct the merchant to open Finance.
+```
+
+Define `finance_instruction` in `concepts` and supply the subsequent scripted turn.
+The complete [Portal demo](../uc4_runner/scenarios/GM-PORTAL-STEPS-001.yaml) also
+references forbidden checks to reject jumping ahead or substituting an app route.
+It demonstrates Finance → scripted acknowledgment → Transactions, stopping before
+the acknowledgment when the first reply deviates.
+
+Gate references must be applicable hard `required`, `forbidden`, or `ordered`
+assertions evaluated against the current reply. Warning/identity/greeting rules,
+business-line mismatches, merchant-context allowances, and `unless_*` or
+`warn_if_response_concepts` conditions are rejected as gate references. These
+restrictions keep gate results unambiguously PASS or FAIL for usable replies.
+Concept alternatives, typography normalization, and local exclusions work as usual;
+there is no literal-sentence requirement.
+
+An unmet gate leaves the current reply and its FAIL assertions in the report and
+marks every later turn SKIPPED. Only listed assertions control advancement: other
+hard failures still grade the run, and warnings still warn, without stopping it.
+Without `advance_when`, the original sequential behavior applies. A final turn
+uses ordinary grading because there is no next message to guard.
+
+Missing/empty replies and transport/protocol failures remain ERRORs; their gates
+are unevaluated. Dry-run gates are also unevaluated. For recorded gate fields and
+skip provenance, read [guarded progression](ARCHITECTURE.md#guarded-progression).
 
 ### Concept matching
 
@@ -154,11 +196,13 @@ ERROR has precedence over FAIL. Earlier behavioral failures in an ERROR run are
 still recorded. Assertion-level results are PASS / FAIL / WARN / SKIP, with a turn
 and reason. Planned/skipped turns and dry-run runs have `outcome: null`.
 
-Read `summary.md` first: complete-conversation reliability and behavioral pass rate
+Read `summary.md` first: transport reliability and behavioral pass rate
 have separate denominators. An all-ERROR batch has null behavioral pass rate, not
 0% or 100%. `aggregate.json.metrics.behavior.endToEndPassRate` measures passes across
 all executed repetitions. Strict passes exclude warnings; the usual behavioral
 pass rate includes them. Recurring defects report occurrences and affected runs.
+Gate-stopped FAILs stay in the behavioral denominator even though later turns were
+skipped. For the exact counters, use [reliability denominators](ARCHITECTURE.md#evidence-and-reliability).
 
 Use a per-run transcript to see user-facing conversation only. Use per-run JSON
 for assertions, HTTP status, request duration, IDs, and optional raw response.
@@ -170,6 +214,8 @@ durations measure the request/response handling, excluding configured sleep dela
 - “When was the order cancelled?” on turn 2: HTTP can succeed, but the route and
   answer-location assertions FAIL.
 - Correct timing/route plus “How may I help you today?”: PASS_WITH_WARNINGS.
+- Portal demo replies “Open Finance, then Transactions” before acknowledgment:
+  FAIL; the `one-step-only` gate assertion fails and the scripted acknowledgment is SKIPPED.
 - Correct response text but different echoed session ID: FAIL (continuity).
 - HTTP 200 with invalid JSON: ERROR; HTTP success rate can be 100% while usable-reply
   rate is 0%. The next turn is SKIPPED.
@@ -217,6 +263,8 @@ Tests exercise protocol errors, semantic deviations, five-run isolation, bounded
 concurrency/turn order, auth headers, normalization, raw retention/redaction, metrics,
 CLI behavior, and validation. Keep behavior examples meaningful: add positive and
 negative wording for a rubric change rather than testing implementation internals.
+`tests/test_advancement.py` covers guarded requests, mixed isolated runs, report
+counts, and regrades that preserve or conflict with the captured progression path.
 
 For future Git regression work, commit scenario definitions and code, bump scenario
 versions for changed expectations, and compare scenario hashes and runner versions.

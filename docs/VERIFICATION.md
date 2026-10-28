@@ -128,3 +128,45 @@ additional paraphrase/negative examples. They do not establish perfect semantic
 accuracy or a new live experiment. Remaining risks are documented under
 [known limitations](DECISIONS.md#known-limitations). No deployed Cognigy resources
 were modified.
+
+---
+
+## v0.2 guarded progression — 2026-10-29
+
+Verified locally on Windows/CPython 3.15.2. This section records mocked execution,
+dry-runs, and offline regrading; no live Cognigy requests or deployed-resource
+changes were made. Report directory timestamps use UTC.
+
+Starting checkout: `a48a06453e803c626699d34ee08560acf0dc3e3a`, the documentation-only
+successor to v0.1.1 implementation commit
+`6f060df87df92a20d72bc30186c06d8c32050e0c`.
+
+| Check | Result |
+|---|---|
+| Baseline suite | 237 passed before the change |
+| Full suite: `python -m pytest -q` | **293 passed** in 4.40 seconds; 56 new cases |
+| Scenario validation | Both packaged scenarios valid; original continuity scenario remains v0.1.1 |
+| Five-run dry-runs | Both scenarios produced ten planned turns, zero requests, null outcomes/pass rates, and COMPLETE manifests |
+| Mocked five-run Portal demo | PASS, PASS_WITH_WARNINGS, FAIL (gate), FAIL (final reply), ERROR (timeout); eight mocked requests |
+| Gate aggregation | One gate-stopped run and one gate-skipped turn; no double-counted hard assertions; behavioral pass rate 2/4, end-to-end 2/5 |
+| Gate regrading | Same-path regrades and regrades-of-regrades pass; changed paths and inconsistent captures rejected before output creation |
+| Historical continuity regrade | Original five conversations still grade FAIL / PASS_WITH_WARNINGS / PASS_WITH_WARNINGS / PASS_WITH_WARNINGS / FAIL; historical transport metrics unchanged |
+| Evidence integrity | **All 77 baseline files byte-identical**: original scenario plus 76 preexisting report/evidence files |
+| Offline installed wheel | v0.2.0 built/installed without index access; both scenarios validated outside checkout, with mocked gate-stop, regrade, and five-run dry-run checks under blocked networking |
+| Editable installation | Updated locally to v0.2.0 using offline build tooling |
+| Dependencies | `python -m pip check`: no broken requirements |
+| Documentation | 51 relative links/anchors, 10 CLI examples, and 2 YAML examples checked; earlier dated records preserved; Git whitespace check passed |
+
+Local artifacts (git-ignored):
+
+- Mocked demo: `reports/20261028T222224144264Z-f5bf64f2287a/`.
+  Its summary and gate-stopped transcript were inspected for the failing assertion,
+  preserved unexpected reply, and explicit unsent acknowledgment.
+- Continuity dry-run: `reports/20261028T222122176791Z-26f8334c6f45/`.
+- Portal dry-run: `reports/20261028T222122176875Z-2063f7c541a9/`.
+- Historical offline regrade: `reports/regrade-20261028T222224190678Z-e19c1970af12/`.
+
+For the five-run demo command, use the [operator example](../README.md#one-by-one-portal-demonstration).
+For configuration, use [advancement conditions](TESTING_GUIDELINES.md#advancement-conditions).
+The new checks establish guarded scripted progression against mocked replies;
+[deterministic-matching limitations](DECISIONS.md#known-limitations) still apply.

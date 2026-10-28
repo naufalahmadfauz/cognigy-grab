@@ -29,6 +29,31 @@ def _strings(value, keys, where: str):
         raise RegradeError(f"{where}: expected nonempty recorded strings.")
 
 
+def _gate_failed(turn: dict) -> bool:
+    if "advancement" not in turn:
+        return False
+    gate = turn["advancement"]
+    _fields(gate, {"assertionIds", "outcome", "reason"}, "advancement gate")
+    _strings(gate, ("reason",), "advancement gate")
+    names = gate["assertionIds"]
+    by_id = {item["id"]: item for item in turn["assertions"]}
+    if (
+        not isinstance(names, list) or not names
+        or any(not isinstance(name, str) or name not in by_id for name in names)
+        or len(set(names)) != len(names)
+        or any(by_id[name]["category"] != "behavior" for name in names)
+    ):
+        raise RegradeError("Recorded advancement gate needs unique behavioral assertion references.")
+    expected = None
+    if turn["executionStatus"] == "EXECUTED" and turn["error"] is None:
+        if any(by_id[name]["outcome"] not in ("PASS", "FAIL") for name in names):
+            raise RegradeError("Recorded advancement assertions must have hard outcomes for usable replies.")
+        expected = "FAIL" if any(by_id[name]["outcome"] == "FAIL" for name in names) else "PASS"
+    if gate["outcome"] != expected:
+        raise RegradeError("Recorded advancement gate contradicts assertion evidence.")
+    return expected == "FAIL"
+
+
 def validate_evidence(batch: object, scenario) -> None:
     """Reject incompatible/incomplete captures instead of manufacturing passes.
 
@@ -61,7 +86,19 @@ def validate_evidence(batch: object, scenario) -> None:
             raise RegradeError("Recorded run provenance does not match its batch.")
         if not isinstance(run["turns"], list) or len(run["turns"]) != len(scenario.turns):
             raise RegradeError("Recorded turn count differs from the selected scenario.")
-        stopped = False
+        gate_stop = run.get("stoppedByGate")
+        if gate_stop is not None:
+            _fields(gate_stop, {"turnIndex", "turnId", "assertionIds", "reason"}, "gate stop")
+            _strings(gate_stop, ("turnId", "reason"), "gate stop")
+            names = gate_stop["assertionIds"]
+            if (
+                type(gate_stop["turnIndex"]) is not int or not 1 <= gate_stop["turnIndex"] < len(run["turns"])
+                or not isinstance(names, list) or not names
+                or any(not isinstance(name, str) or not name for name in names)
+                or len(set(names)) != len(names)
+            ):
+                raise RegradeError("Recorded gate stop needs a valid turn and failed assertion IDs.")
+        stopped = transport_stopped = False
         for index, (turn, definition) in enumerate(zip(run["turns"], scenario.turns, strict=True), 1):
             _fields(turn, {"turnId", "turnIndex", "batchId", "runId", "userId", "sessionId", "merchantInput", "agentText", "executionStatus", "outcome", "httpStatus", "durationSeconds", "traceIds", "echoedIdentity", "error", "assertions"}, "turn")
             _strings(turn, ("userId", "sessionId"), "turn")
@@ -82,9 +119,14 @@ def validate_evidence(batch: object, scenario) -> None:
                 if item["id"] in assertion_ids or item["outcome"] not in ("PASS", "FAIL", "WARN", "SKIP"):
                     raise RegradeError("Recorded assertion IDs must be unique and outcomes recognized.")
                 assertion_ids.add(item["id"])
+            gate_failed = _gate_failed(turn)
             if turn["executionStatus"] == "SKIPPED":
                 if not stopped or turn["outcome"] is not None or turn["error"] is not None:
-                    raise RegradeError("Skipped turns must follow a recorded transport/protocol error.")
+                    raise RegradeError("Skipped turns must follow a recorded transport/protocol error or unmet advancement gate.")
+                if turn["agentText"] or turn["httpStatus"] is not None or turn.get("attempts", 0) != 0:
+                    raise RegradeError("Skipped turns cannot contain attempted requests or replies.")
+                if gate_stop:
+                    _strings(turn, ("skipReason",), "gate-skipped turn")
                 continue
             if turn["executionStatus"] != "EXECUTED" or stopped or turn["outcome"] not in OUTCOMES:
                 raise RegradeError("Recorded turn execution order/status is inconsistent.")
@@ -95,13 +137,22 @@ def validate_evidence(batch: object, scenario) -> None:
             if turn["error"] is not None:
                 _fields(turn["error"], {"kind", "reason"}, "transport error")
                 _strings(turn["error"], ("kind", "reason"), "transport error")
-                stopped = True
+                stopped = transport_stopped = True
             elif not (200 <= (turn["httpStatus"] or 0) < 300 and turn["agentText"].strip()):
                 raise RegradeError("Unusable replies need a recorded transport/protocol error.")
-            if (turn["outcome"] == "ERROR") != stopped:
+            if (turn["outcome"] == "ERROR") != transport_stopped:
                 raise RegradeError("Recorded turn outcome contradicts transport evidence.")
-        if (run["outcome"] == "ERROR") != stopped:
+            if gate_failed:
+                if not gate_stop or gate_stop["turnIndex"] != index or turn["outcome"] != "FAIL":
+                    raise RegradeError("Unmet recorded advancement gate needs matching stop evidence and FAIL outcome.")
+                stopped = True
+            if gate_stop and gate_stop["turnIndex"] == index:
+                if not gate_failed or gate_stop["turnId"] != turn["turnId"]:
+                    raise RegradeError("Recorded gate stop contradicts its turn's advancement evidence.")
+        if (run["outcome"] == "ERROR") != transport_stopped:
             raise RegradeError("Recorded run outcome contradicts transport evidence.")
+        if gate_stop and run["outcome"] != "FAIL":
+            raise RegradeError("A recorded gate-stopped run must have a FAIL outcome.")
 
 
 def compare_grades(original: list[dict], updated: list[dict]) -> dict:
@@ -145,6 +196,15 @@ def regrade_batch(source: Path, scenario, config: Config, output_root: Path) -> 
     runs = deepcopy(original["runs"])
     for run in runs:
         evaluate_run(scenario, run)
+        for turn, following in zip(run["turns"], run["turns"][1:]):
+            if turn["executionStatus"] == "EXECUTED" and turn["error"] is None:
+                would_stop = turn.get("advancement", {}).get("outcome") == "FAIL"
+                captured_stop = following["executionStatus"] == "SKIPPED"
+                if would_stop != captured_stop:
+                    raise RegradeError(
+                        "Revised advancement gates would change the captured progression path; "
+                        "regrade cannot supply skipped replies or discard executed turns."
+                    )
         run.update({
             "batchId": batch_id, "scenarioVersion": scenario.version, "scenarioSha256": scenario.sha256,
             "evaluationMode": "REGRADE", "evaluatedAt": evaluated_at,

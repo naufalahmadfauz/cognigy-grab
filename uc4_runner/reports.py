@@ -24,7 +24,7 @@ def metrics(runs: list[dict]) -> dict:
     http_ok = sum(200 <= (turn["httpStatus"] or 0) < 300 for turn in attempted)
     counts = Counter(run["outcome"] for run in executed)
     passing = counts["PASS"] + counts["PASS_WITH_WARNINGS"]
-    return {
+    stats = {
         "requestedRuns": len(runs), "executedRuns": len(executed),
         "plannedRuns": len(runs) - len(executed),
         "outcomes": {outcome: counts[outcome] for outcome in OUTCOMES},
@@ -49,6 +49,13 @@ def metrics(runs: list[dict]) -> dict:
             ),
         },
     }
+    if any("advancement" in turn for run in runs for turn in run["turns"]):
+        stopped = [run for run in executed if run.get("stoppedByGate")]
+        stats["progression"] = {
+            "gateStoppedRuns": len(stopped),
+            "gateSkippedTurns": sum(turn["executionStatus"] == "SKIPPED" for run in stopped for turn in run["turns"]),
+        }
+    return stats
 
 
 def defects(runs: list[dict]) -> list[dict]:
@@ -84,11 +91,20 @@ def transcript(run: dict) -> str:
     for turn in run["turns"]:
         lines.extend([
             f"## Turn {turn['turnIndex']} — {turn['executionStatus']}", "",
-            "**Merchant**", _quote(turn["merchantInput"]), "", "**Agent**",
+            "**Merchant**" if turn["executionStatus"] == "EXECUTED" else "**Merchant (scripted, not sent)**",
+            _quote(turn["merchantInput"]), "", "**Agent**",
             _quote(turn["agentText"]), "",
             f"HTTP: {turn['httpStatus']}; duration: {turn['durationSeconds']} seconds",
             "", "Trace IDs: " + (", ".join(turn["traceIds"]) or "not supplied"), "",
         ])
+        if turn.get("skipReason"):
+            lines.extend(["Skipped: " + html.escape(turn["skipReason"]), ""])
+        if "advancement" in turn:
+            gate = turn["advancement"]
+            lines.extend([
+                f"Advancement gate: **{gate['outcome'] or 'NOT EVALUATED'}** "
+                f"({html.escape(', '.join(gate['assertionIds']))}). {html.escape(gate['reason'])}", "",
+            ])
         for assertion in turn["assertions"]:
             lines.append(f"- {assertion['outcome']} `{assertion['id']}`: {html.escape(assertion['reason'])}")
         lines.append("")
@@ -130,7 +146,7 @@ def summary(batch: dict) -> str:
         lines.append("")
     lines.extend([
         "## Reliability", "",
-        f"- Complete conversations: **{transport['completeRuns']}/{stats['executedRuns']}** "
+        f"- Runs without transport/protocol ERROR: **{transport['completeRuns']}/{stats['executedRuns']}** "
         f"({percent(transport['completeRunRate'])}).",
         f"- HTTP 2xx: **{transport['httpSuccessfulTurns']}/{transport['attemptedTurns']}** "
         f"({percent(transport['httpSuccessRate'])}).",
@@ -168,6 +184,24 @@ def summary(batch: dict) -> str:
                 lines.extend(["", _quote(turn["agentText"]), ""])
                 for item in problems:
                     lines.append(f"- {item['outcome']} `{item['id']}`: {html.escape(item['reason'])}")
+        lines.append("")
+    if "progression" in stats:
+        progression = stats["progression"]
+        lines.extend([
+            "## Advancement gates", "",
+            f"- Gate-stopped runs: **{progression['gateStoppedRuns']}**; "
+            f"turns skipped by gates: **{progression['gateSkippedTurns']}**.",
+            "- Gate stops count as behavioral FAILs, not transport ERRORs. Skipped merchant messages were not sent.", "",
+        ])
+        for run in batch["runs"]:
+            for turn in run["turns"]:
+                if "advancement" in turn:
+                    gate = turn["advancement"]
+                    lines.append(
+                        f"- Run {run['runIndex']}, turn {turn['turnIndex']}, gate "
+                        f"[{html.escape(', '.join(gate['assertionIds']))}]: **{gate['outcome'] or 'NOT EVALUATED'}**. "
+                        f"{html.escape(gate['reason'])}"
+                    )
         lines.append("")
     lines.extend([
         "## Configuration", "", "```json",
@@ -208,9 +242,10 @@ class ReportWriter:
             conversations.append({
                 "runId": run["runId"], "runIndex": run["runIndex"],
                 "userId": run["userId"], "sessionId": run["sessionId"], "outcome": run["outcome"],
+                **({"stoppedByGate": run["stoppedByGate"]} if "stoppedByGate" in run else {}),
                 "turns": [{key: turn[key] for key in (
-                    "turnIndex", "merchantInput", "agentText", "executionStatus", "traceIds", "outcome"
-                )} for turn in run["turns"]],
+                    "turnIndex", "merchantInput", "agentText", "executionStatus", "traceIds", "outcome", "advancement", "skipReason"
+                ) if key in turn} for turn in run["turns"]],
             })
         self.write_json("transcripts.json", {"batchId": batch["batchId"], "mode": batch["mode"], "conversations": conversations})
         self._write("summary.md", summary(safe))

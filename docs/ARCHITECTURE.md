@@ -1,4 +1,4 @@
-# Architecture — v0.1.1
+# Architecture — v0.2.0
 
 ## Components
 
@@ -19,8 +19,8 @@ CLI regrade (regrade.py)
   └─ grade comparison + same report writer → fresh REGRADE directory
 ```
 
-`uc4_runner/scenarios/GM-CONTINUITY-001.yaml` is packaged with the application so
-the default scenario also works after a wheel installation, outside the checkout.
+Both scenarios in `uc4_runner/scenarios/` are packaged with the application so
+they also work after a wheel installation, outside the checkout.
 `examples/STATUS-LOCATION-JSON.json` demonstrates the same schema in JSON.
 
 The application needs no Cognigy plugin, OpenCode/Codex session, LLM grading API,
@@ -39,8 +39,8 @@ database, or external reporting service. Only a real `run` constructs an HTTP cl
    trace IDs. Interpret only documented user-facing fields for assertions.
 6. On transport/protocol error, stop that session and record subsequent turns as
    SKIPPED. Grade the captured run with `assertions.evaluate_run`, preserving
-   chronological merchant/reply context. A behavioral failure does not suppress
-   follow-up turns. Other independent runs continue.
+   chronological merchant/reply context. Behavioral failures suppress follow-up
+   turns only through an explicit advancement gate. Other independent runs continue.
 7. Redact evidence before writing per-run checkpoints and transcripts. Finalize
    aggregate JSON, Markdown summary, and the COMPLETE manifest.
 
@@ -49,6 +49,28 @@ owns **whole runs**, so two turns of one session are never in flight simultaneou
 Run-delay spacing applies to submissions; request-delay spacing applies per
 conversation, not as a global rate limiter. Each run has its own HTTP client and
 cookie jar. Completed reports are ordered by run index regardless of finish order.
+
+## Guarded progression
+
+`runner.py` calls the shared `assertions.evaluate_run` after capturing a gated reply,
+before any next-turn delay or POST. Only the configured assertions decide whether
+to advance. Final evaluation uses the same function, including skipped assertions;
+the transport client and scheduler remain independent of gate policy. For YAML
+syntax and permitted references, use [advancement conditions](TESTING_GUIDELINES.md#advancement-conditions).
+
+Report schema 1.0 gains optional fields for guarded runs:
+
+- `turn.advancement`: referenced `assertionIds`, evaluated `outcome` (PASS/FAIL or
+  null when unevaluated), and `reason`. It reuses assertion results rather than adding
+  a duplicate failing assertion.
+- `run.stoppedByGate`: the captured stopping `turnIndex`, `turnId`, failed
+  `assertionIds`, and `reason`. This is capture metadata, preserved during regrading.
+- `turn.skipReason`: the gate stop responsible for an unsent turn. Skipped turns
+  keep null outcomes/HTTP timings, zero attempts, and no fabricated reply.
+
+These fields appear in per-run/aggregate JSON and normalized transcripts; Markdown
+shows gate results and labels unsent merchant messages as scripted. Saved replies
+and optional raw responses still pass through the existing redaction boundary.
 
 ## REST behavior
 
@@ -116,7 +138,8 @@ bodies use `rawBody`; ordinary JSON uses `rawResponse` including `outputStack`.
 
 - HTTP success: 2xx attempted turns / attempted turns.
 - Usable replies: supported nonempty 2xx JSON replies / attempted turns.
-- Complete conversations: runs without transport/protocol ERROR / executed runs.
+- Runs without transport/protocol ERROR: non-ERROR runs / executed runs
+  (`transport.completeRuns` and `completeRunRate`, retaining the existing denominator).
 - Behavioral pass: PASS or PASS_WITH_WARNINGS runs / complete runs.
 - Strict behavioral pass: PASS runs / complete runs.
 - End-to-end pass: PASS or PASS_WITH_WARNINGS runs / all executed runs.
@@ -125,6 +148,12 @@ ERROR runs are excluded from whole-conversation behavioral grading, but any prio
 hard behavioral deviations remain in assertions, defects, and `observedHardFailures`.
 Zero denominators yield null rates. Warnings, hard failures, and transport failures
 are grouped independently by assertion ID and turn, with affected run indexes.
+
+Gate-stopped runs count as behavioral FAILs in the non-ERROR denominator. The legacy
+`transport.skippedTurns` counter still counts all skipped turns. Guarded reports add
+`metrics.progression.gateStoppedRuns` and `gateSkippedTurns` to separate behavioral
+stops from transport failures. HTTP/usable-reply rates consider only attempted turns;
+`completeRuns` does not promise that every scripted message was sent.
 
 All artifact files use atomic replace within the batch directory. The manifest is
 marked COMPLETE only after final reports exist. A process interruption can leave
@@ -138,13 +167,20 @@ consumers should require the COMPLETE manifest for aggregate results.
 `regrade.py` accepts an EXECUTED or REGRADE aggregate with report schema version
 `1.0` and completed run records. The selected scenario must match the recorded
 scenario ID/business line and every turn ID/order/merchant message; expectations
-may change. Completed ERROR runs remain regradable, including their skipped turns.
+may change. Completed ERROR runs and gate-stopped FAILs remain regradable, including
+their skipped turns and recorded stop causes.
 Supply the full aggregate: `transcripts.json` lacks execution and identity evidence
 required by the validator.
 
 Validation rejects dry-run plans and malformed or inconsistent captures before
 output creation. The output root must be outside the source aggregate's directory.
 Source files are read-only inputs.
+
+After reevaluation, selected gates must agree with the recorded progression path.
+Reject a newly unmet gate followed by recorded execution, or a newly satisfied/
+removed gate followed by a captured behavioral stop. Both checks happen before
+output creation: a regrade cannot discard executed turns or supply missing replies.
+Historical transport errors remain ERRORs with unevaluated gates.
 
 ### Regrade evaluation and provenance
 
@@ -167,6 +203,9 @@ through the [redaction boundary](#redaction-boundary).
 Comparison entries list added, removed, or changed assertion outcomes. For changes
 to reasons or evidence with unchanged outcomes, inspect the source and updated
 per-run assertions.
+Gate evaluations are recalculated, while `stoppedByGate` and `skipReason` preserve
+the original capture explanation even if a revised assertion now stops at the same
+turn. This distinction also applies to regrades of regrades.
 For command execution and report review, follow the
 [offline regrade workflow](TESTING_GUIDELINES.md#offline-regrade-workflow).
 

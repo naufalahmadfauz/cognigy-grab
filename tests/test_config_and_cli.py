@@ -66,7 +66,7 @@ def test_endpoint_required_only_for_real_runs():
 
 def test_default_cli_validation_is_offline(capsys):
     assert cli.main(["validate"]) == 0
-    assert "Validated 1 scenario" in capsys.readouterr().out
+    assert "Validated 2 scenario" in capsys.readouterr().out
 
 
 def test_cli_accepts_json_scenario():

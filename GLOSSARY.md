@@ -21,6 +21,10 @@ A new assessment of recorded conversations against revised scenario expectations
 **Turn**:
 One merchant message and the Agent's corresponding reply or replies.
 
+**Advancement gate**:
+A condition on the Agent's reply that must be satisfied before the next scripted merchant message may be sent.
+_Avoid_: Branch when referring to guarded progression along a fixed script
+
 **Business line**:
 The merchant's Grab service, such as GrabMart or GrabFood, that determines the applicable compensation guidance.
 _Avoid_: Product when referring to an ordered item

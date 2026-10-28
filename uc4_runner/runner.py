@@ -10,7 +10,7 @@ from uuid import uuid4
 import httpx
 
 from . import __version__
-from .assertions import evaluate_run, skipped_assertions
+from .assertions import evaluate_run
 from .client import CognigyClient
 from .config import Config, ConfigError, endpoint_url
 from .redact import Redactor
@@ -27,7 +27,7 @@ def _plan_run(scenario: Scenario, index: int, batch_id: str) -> dict:
     user_id = f"uc4-user-{uuid4()}"
     session_id = f"uc4-session-{uuid4()}"
     planned = utc_now()
-    return {
+    run = {
         "runId": run_id, "batchId": batch_id, "runIndex": index,
         "userId": user_id, "sessionId": session_id,
         "scenarioId": scenario.id, "scenarioVersion": scenario.version,
@@ -43,9 +43,11 @@ def _plan_run(scenario: Scenario, index: int, batch_id: str) -> dict:
             "httpStatus": None, "traceIds": [], "echoedIdentity": {},
             "rawResponse": None, "rawBody": None, "rawEvidenceRetained": False,
             "normalizationNotes": [], "error": None,
-            "assertions": skipped_assertions(scenario, turn, turn_index, "Dry-run plan; response not evaluated."),
+            "assertions": [],
         } for turn_index, turn in enumerate(scenario.turns, 1)],
     }
+    evaluate_run(scenario, run)
+    return run
 
 
 def _execute_run(scenario: Scenario, config: Config, run: dict, transport, sleep) -> dict:
@@ -57,6 +59,9 @@ def _execute_run(scenario: Scenario, config: Config, run: dict, transport, sleep
             index = turn["turnIndex"]
             if stopped:
                 turn["executionStatus"] = "SKIPPED"
+                if "stoppedByGate" in run:
+                    stop = run["stoppedByGate"]
+                    turn["skipReason"] = f"Advancement gate unmet at turn {stop['turnIndex']}: {stop['reason']}"
                 continue
             if index > 1 and config.request_delay:
                 sleep(config.request_delay)
@@ -77,6 +82,18 @@ def _execute_run(scenario: Scenario, config: Config, run: dict, transport, sleep
             })
             if reply.error_kind:
                 stopped = True
+            elif "advance_when" in definition:
+                # Evaluate captured evidence before deciding whether to send the
+                # next scripted message. Ordinary assertion failures still continue.
+                evaluate_run(scenario, run)
+                if turn["advancement"]["outcome"] == "FAIL":
+                    stopped = True
+                    run["stoppedByGate"] = {
+                        "turnIndex": index, "turnId": turn["turnId"],
+                        "assertionIds": [item["id"] for item in turn["assertions"]
+                                         if item["id"] in definition["advance_when"] and item["outcome"] == "FAIL"],
+                        "reason": turn["advancement"]["reason"],
+                    }
     run["completedAt"] = utc_now()
     run["executionStatus"] = "COMPLETED"
     evaluate_run(scenario, run)

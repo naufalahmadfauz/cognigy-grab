@@ -142,7 +142,7 @@ def classify(assertions: list[dict], *, transport_error: bool = False) -> str:
 def evaluate_run(scenario: Scenario, run: dict) -> None:
     """Grade captured turns in place, shared by REST execution and offline regrading.
 
-    Only assertion results and outcomes change. Captured text, raw responses,
+    Only assertion results, gate evaluations and outcomes change. Captured text, raw responses,
     identities, timestamps, HTTP status and transport errors remain evidence.
     """
     identity = {key: run[key] for key in ("userId", "sessionId")}
@@ -153,7 +153,7 @@ def evaluate_run(scenario: Scenario, run: dict) -> None:
         if turn["executionStatus"] != "EXECUTED":
             reason = (
                 "Dry-run plan; response not evaluated." if turn["executionStatus"] == "PLANNED"
-                else "Earlier transport/protocol error left session state uncertain."
+                else turn.get("skipReason", "Earlier transport/protocol error left session state uncertain.")
             )
             turn["assertions"] = skipped_assertions(scenario, definition, index, reason)
             turn["outcome"] = None
@@ -176,6 +176,19 @@ def evaluate_run(scenario: Scenario, run: dict) -> None:
             previous_replies.append(turn["agentText"])
         turn["assertions"] = [transport_check, *assertions]
         turn["outcome"] = classify(turn["assertions"], transport_error=bool(error))
+    for definition, turn in zip(scenario.turns, run["turns"], strict=True):
+        turn.pop("advancement", None)
+        if "advance_when" in definition:
+            selected = [item for item in turn["assertions"] if item["id"] in definition["advance_when"]]
+            failed = [item for item in selected if item["outcome"] == "FAIL"]
+            evaluated = all(item["outcome"] in {"PASS", "FAIL"} for item in selected)
+            turn["advancement"] = {
+                "assertionIds": definition["advance_when"],
+                "outcome": ("FAIL" if failed else "PASS") if evaluated else None,
+                "reason": "; ".join(f"{item['id']}: {item['reason']}" for item in failed) if failed else (
+                    "All advancement assertions passed." if evaluated else "Advancement gate not evaluated."
+                ),
+            }
     run["outcome"] = classify(
         [assertion for turn in run["turns"] for assertion in turn["assertions"]],
         transport_error=any(turn["error"] for turn in run["turns"]),

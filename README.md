@@ -1,8 +1,9 @@
-# UC4 Automated Test Runner v0.1.1
+# UC4 Automated Test Runner v0.2.0
 
 A standalone Python CLI for repeated Cognigy REST conversations, deterministic
-behavior checks, and redacted evidence reports. Includes `GM-CONTINUITY-001`:
-Malaysia GrabMart approval timing followed by compensation status location.
+behavior checks, and redacted evidence reports. Includes two Malaysia GrabMart scenarios:
+`GM-CONTINUITY-001` for approval timing/status location and `GM-PORTAL-STEPS-001`
+for guarded, one-by-one Portal guidance.
 
 ## Install
 
@@ -65,13 +66,25 @@ python -m uc4_runner run --scenario GM-CONTINUITY-001 --repeat 5
 
 Validation and dry-run work without an Endpoint or network access. Dry-run creates
 five planned conversations with fresh identities and **no simulated Agent replies**;
-outcomes and pass rates are null, not passes. Real runs make two sequential POSTs per
-successful conversation. Each repetition has independent user/session IDs and a
+outcomes and pass rates are null, not passes. Both packaged scenarios send two
+sequential POSTs on full execution. Each repetition has independent user/session IDs and a
 fresh HTTP client; IDs remain constant across its turns.
 
 Optional flags: `--scenario-file path.yaml`, `--scenarios-dir path`,
 `--output-dir reports`, `--concurrency 2`. Validation accepts `--scenario-file` or
 `--scenarios-dir` too. `python -m uc4_runner --help` lists commands.
+
+## One-by-one Portal demonstration
+
+```bash
+python -m uc4_runner run --scenario GM-PORTAL-STEPS-001 --repeat 5
+```
+
+The merchant starts inside the Portal. The runner sends the scripted acknowledgment
+only after a Finance instruction satisfies the gate, then expects a Transactions
+instruction. Add `--dry-run` to inspect five plans offline.
+
+When configuring guarded turns, read [advancement conditions](docs/TESTING_GUIDELINES.md#advancement-conditions).
 
 ## Regrade saved evidence offline
 

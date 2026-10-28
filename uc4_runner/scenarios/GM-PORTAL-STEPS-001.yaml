@@ -1,0 +1,65 @@
+schema_version: 1
+id: GM-PORTAL-STEPS-001
+version: "0.2.0"
+description: Two-step GrabMart Portal guidance, acknowledging Finance only after a usable one-step instruction.
+product: GrabMart
+country: MY
+
+# Portal > Finance > Transactions is the documented status-location route.
+# Instruction verbs allow paraphrases; these remain deterministic English checks.
+concepts:
+  finance_instruction:
+    - '\b(?:open|select|choose|click(?:\s+on)?|tap(?:\s+on)?|go\s+(?:to|into)|navigate\s+to)\s+(?:the\s+)?finance\b'
+  transactions_instruction:
+    - '\b(?:open|select|choose|click(?:\s+on)?|tap(?:\s+on)?|go\s+(?:to|into)|navigate\s+to)\s+(?:the\s+)?transactions?\b'
+  transactions:
+    - '\btransactions?\b'
+  later_selections:
+    - '\b(?:time|date)\s+(?:period|range)\b'
+    - '\bcompensation\s+for\s+cancell?ed\s+orders?\b'
+    - '\b(?:select|choose|pick)\s+(?:the\s+|your\s+)?stores?\b'
+  app_route:
+    - '\b(?:open|use|launch|tap(?:\s+on)?|go\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+    - '\b(?:grab\s*merchant|grab\s*food)\s+app\s*(?:>|->|→)\s*\w+'
+
+concept_exclusions:
+  finance_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|select|choose|click|tap|go|navigate)\b[^.!?\n,;]*'
+  transactions_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|select|choose|click|tap|go|navigate)\b[^.!?\n,;]*'
+  app_route:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|use|launch|tap|go|log)\b[^.!?\n,;]*'
+
+assertions:
+  - id: identity-continuity
+    type: session_continuity
+    reason: Preserve the same merchant conversation identity.
+  - id: no-app-substitution
+    type: forbidden
+    concepts: [app_route]
+    reason: Keep navigation in the GrabMerchant Portal.
+
+turns:
+  - id: open-finance
+    merchant: "I'm a GrabMart merchant in Malaysia, already signed into GrabMerchant Portal. Help me find my cancelled-order compensation status one step at a time. Give only the first navigation step and wait for me to say Done."
+    advance_when: [finance-step, one-step-only, no-app-substitution]
+    assertions:
+      - id: finance-step
+        type: required
+        concepts: [finance_instruction]
+        reason: Instruct the merchant to open Finance.
+      - id: one-step-only
+        type: forbidden
+        concepts: [transactions, later_selections]
+        reason: Wait for acknowledgment before giving later navigation steps.
+  - id: open-transactions
+    merchant: "Done. What is the next single navigation step?"
+    assertions:
+      - id: transactions-step
+        type: required
+        concepts: [transactions_instruction]
+        reason: Instruct the merchant to open Transactions after Finance.
+      - id: one-step-only
+        type: forbidden
+        concepts: [finance_instruction, later_selections]
+        reason: Give only the Transactions step in this reply.

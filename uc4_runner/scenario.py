@@ -176,7 +176,7 @@ def parse_scenario(data: object) -> Scenario:
     turn_ids = set()
     for index, turn in enumerate(data["turns"], 1):
         where = f"turn {index}"
-        _mapping(turn, {"id", "merchant", "assertions"}, {"id", "merchant", "assertions"}, where)
+        _mapping(turn, {"id", "merchant", "assertions", "advance_when"}, {"id", "merchant", "assertions"}, where)
         _string(turn["id"], where)
         _string(turn["merchant"], where)
         if turn["id"] in turn_ids:
@@ -192,6 +192,27 @@ def parse_scenario(data: object) -> Scenario:
             for rule in applicable
         ):
             raise ScenarioError(f"{where}: needs an applicable hard behavioral assertion.")
+        if "advance_when" in turn:
+            names = turn["advance_when"]
+            by_id = {rule["id"]: rule for rule in applicable}
+            if (
+                not isinstance(names, list) or not names
+                or any(not isinstance(name, str) or name not in by_id for name in names)
+                or len(set(names)) != len(names)
+            ):
+                raise ScenarioError(f"{where}: advance_when needs unique assertion IDs from this turn.")
+            if index == len(data["turns"]):
+                raise ScenarioError(f"{where}: advance_when requires a subsequent scripted turn.")
+            for name in names:
+                rule = by_id[name]
+                if (
+                    rule["type"] not in {"required", "forbidden", "ordered"}
+                    or rule.get("severity", "fail") != "fail"
+                    or data["product"] not in rule.get("products", [data["product"]])
+                    or {"allow_merchant_context", "unless_merchant_concepts", "unless_response_concepts",
+                        "warn_if_response_concepts"} & rule.keys()
+                ):
+                    raise ScenarioError(f"{where}: advance_when requires applicable, unconditional hard response assertions.")
     canonical = json.dumps(data, sort_keys=True, ensure_ascii=False).encode("utf-8")
     return Scenario(data, hashlib.sha256(canonical).hexdigest())
 
