@@ -1,0 +1,25 @@
+# KB articles: UC4-MY-SHARED-ELIGIBILITY-001
+# Shared guidance is exercised in a GrabFood conversation; see coverage limits.
+schema_version: 1
+id: KB-ELIGIBILITY-001
+version: "0.1.1"
+description: Cancellation examples are non-exhaustive and cannot determine an individual award.
+product: GrabFood
+country: MY
+concepts:
+  customer: ['\b(?:chang\w*\s+(?:(?:their|his|her|the)\s+)?mind|customer\b[^.!?\n]{0,30}\bno\s+longer\s+wants)\b']
+  incorrect_location: ['\b(?:incorrect|wrong)\s+(?:address|location)\b']
+  partner: ['\b(?:no|unavailable|no\s+available)\b[^.!?\n]{0,25}\b(?:delivery\s+partner|rider|driver)\b', '\b(?:delivery\s+partner|rider|driver)\b[^.!?\n]{0,25}\b(?:unavailable|not\s+available)\b']
+  examples: ['\b(?:examples?|such\s+as|include|including)\b']
+  policy: ['\b(?:policy|policies|guidelines)\b']
+  guarantee: ['\byou\s+(?:definitely\s+qualify|are\s+guaranteed)\b', '\b(?:guaranteed\s+(?:approval|compensation)|compensation\s+is\s+guaranteed)\b']
+  exhaustive: ['\b(?:only|complete\s+list\s+of)\s+(?:eligible\s+)?(?:reasons|cancellations|cases)\b']
+concept_exclusions:
+  guarantee: ['\b(?:not|no|cannot|can\x27t)\b[^.!?\n;]*']
+  exhaustive: ['\b(?:not|no)\b[^.!?\n;]*']
+turns:
+  - id: examples-not-guarantees
+    merchant: "I'm a GrabFood merchant in Malaysia with an order cancelled 14 days ago. Which cancellation reasons are examples that can be considered for compensation? If a reason matches, is approval guaranteed?"
+    assertions:
+      - {id: supported-examples, type: required, concepts: [customer, incorrect_location, partner, examples, policy], reason: Give the customer-change-of-mind and incorrect-location and unavailable-partner examples subject to policy.}
+      - {id: no-individual-guarantee, type: forbidden, concepts: [guarantee, exhaustive], reason: Examples are neither a complete list nor proof of an individual entitlement.}

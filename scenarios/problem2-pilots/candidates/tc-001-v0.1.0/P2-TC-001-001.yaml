@@ -1,0 +1,99 @@
+# OFFLINE CANDIDATE FOR REVIEW. No live execution or baseline freeze authorized.
+# P2-JOURNEYS-0.4 JRN-TC-001 M01-M04; original WB Scenarios!A4:F4.
+# Scoped internal acceptance: reference/UC4_P2_Scoped_Internal_POC_Acceptance_Decision_2026-11-04.md.
+# Proposed binding: English utterance-first REST/text, NOT the separately proposed native-empty control.
+# Reference: preparation 2026-11-06, Asia/Kuala_Lumpur (UTC+08:00); record actual initialization before execution.
+# Explicit cancellation age 1 day is recent on every GF weekday; no injected clock or preparation fact.
+# Semantic screens allow paraphrases; CT01/CT02/CT12 remain source references, not a newly adopted literal oracle.
+# Manual review retains timing relationships/order, complete disclosure, no inferred preparation or payment guarantee.
+# Flow-owned goodbye/end_call/terminal exactly once needs correlated external evidence; audio is not covered by REST.
+# No gates: the explicit finish asserts no unseen action. Earlier hard failures still fail the run, without suppressing closing evidence.
+schema_version: 1
+id: P2-TC-001-001
+version: "0.1.0"
+description: TC-001 recent GrabFood age-only education, prepared-food evidence reminder, further-help wait and explicit finish; utterance-first text candidate.
+product: GrabFood
+country: MY
+concepts:
+  greeting:
+    - '(?:^|[.!?]\s+|\n)\s*(?:hi|hello|hey|good\s+(?:morning|afternoon|evening))\b'
+  assistant_identity:
+    - '\bgrab\s+(?:ai|virtual|automated)\s+assistant\b'
+    - '\b(?:ai|virtual|automated)\s+assistant\b[^.!?\n]{0,40}\bgrab\b'
+  recording_notice:
+    - '\b(?:call|conversation)\b[^.!?\n]{0,55}\brecord(?:ed|ing)\b'
+    - '\brecording\b[^.!?\n]{0,35}\b(?:call|conversation)\b'
+  recording_purpose:
+    - '\bquality(?:\s+assurance)?\b[^.!?\n]{0,45}\btraining\b'
+    - '\btraining\b[^.!?\n]{0,45}\bquality(?:\s+assurance)?\b'
+  approval_1_2:
+    - '\bapprov\w*\b[^.!?\n]{0,100}\b(?:1|one)\s*(?:-|to|or)\s*(?:2|two)\s+(?:business|working)\s+days?\b'
+    - '\b(?:1|one)\s*(?:-|to|or)\s*(?:2|two)\s+(?:business|working)\s+days?\b[^.!?\n]{0,80}\bapprov\w*\b'
+  usual:
+    - '\b(?:usual(?:ly)?|typical(?:ly)?|generally|normal(?:ly)?)\b'
+  order_origin:
+    - '\b(?:after|from)\b[^.!?\n]{0,35}\border\b[^.!?\n]{0,30}\b(?:made|placed|created)\b'
+    - '\b(?:after|from)\s+(?:the\s+)?order\s+(?:date|placement|creation)\b'
+  regular_payout:
+    - '\bnext\s+(?:(?:regular|scheduled|normal)\s+)?(?:payout|payment)\s+cycle\b'
+    - '\bnext\s+(?:regular|scheduled|normal)\s+(?:payout|payment)\b'
+  policy_qualification:
+    - '\b(?:subject\s+to|under|according\s+to|depending\s+on)\b[^.!?\n]{0,65}\b(?:polic(?:y|ies)|guidelines)\b'
+  prepared_food_photo:
+    - '\b(?:keep|retain|save|take|have)\b[^.!?\n]{0,65}\b(?:photo(?:graph)?s?|pictures?|images?)\b[^.!?\n]{0,45}\bprepared\s+food\b'
+    - '\b(?:keep|retain|save|take|have)\b[^.!?\n]{0,65}\bprepared\s+food\s+(?:photo(?:graph)?s?|pictures?|images?)\b'
+  later_review:
+    - '\b(?:review|support)\b[^.!?\n]{0,120}\b(?:more\s+than|longer\s+than|over|beyond)\s+(?:2|two)\s+(?:business|working)\s+days?\b'
+    - '\b(?:more\s+than|longer\s+than|over|beyond)\s+(?:2|two)\s+(?:business|working)\s+days?\b[^.!?\n]{0,120}\b(?:review|support)\b'
+  further_help:
+    - '\b(?:anything|something)\s+else\b[^.!?\n]{0,90}\?'
+    - '\b(?:do\s+you\s+need|would\s+you\s+like|can\s+i\s+(?:offer|provide))\s+(?:any\s+)?(?:further|more|other)\s+(?:help|assistance)\b[^.!?\n]{0,60}\?'
+    - '\b(?:any|do\s+you\s+have\s+any)\s+other\s+questions\b[^.!?\n]{0,40}\?'
+    - '\bhow\s+else\s+(?:can|may)\s+i\s+(?:help|assist)\b[^.!?\n]{0,60}\?'
+  goodbye:
+    - '\b(?:goodbye|bye|(?:thank\s+you|thanks)\s+for\s+(?:calling|contacting)|have\s+a\s+(?:nice|good|great|pleasant)\s+day|take\s+care)\b'
+  unnecessary_intake:
+    - '\bhow\s+(?:may|can)\s+i\s+(?:help|assist)\s+you(?:\s+today)?\s*\?'
+    - '\b(?:which|what|whether|are\s+you|do\s+you\s+mean)\b[^.!?\n]{0,70}\bgrab\s*(?:food|mart)\b[^.!?\n]{0,50}\bor\b[^.!?\n]{0,30}\bgrab\s*(?:food|mart)\b'
+    - '\b(?:when|how\s+long\s+ago|how\s+many\s+days\s+ago)\b[^.!?\n]{0,70}\bcancell?ed\b[^.!?\n]{0,60}\?'
+    - '\b(?:app\s+or\s+(?:the\s+)?portal|one.by.one\s+or\s+all.at.once|loudspeaker)\b[^.!?\n]{0,70}\?'
+  unsolicited_guidance:
+    - '\b(?:open|tap(?:\s+on)?|click(?:\s+on)?|select|go\s+to|navigate\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grabmerchant\s+(?:app|portal)|orders|cancelled|history|help\s+centre|finance|request\s+for\s+compensation|report\s+a\s+payment\s+dispute)\b'
+    - '\b(?:would\s+you\s+like|do\s+you\s+want|shall\s+i|can\s+i)\b[^.!?\n]{0,65}\b(?:guide|walk|show)\b'
+  inferred_preparation:
+    - '\b(?:your|the|this)\s+(?:order|food)\s+(?:was|is|has\s+been|had\s+been)\s+(?:already\s+)?prepared\b'
+    - '\b(?:since|as|because)\s+you(?:\s+have|\s+had|\x27ve|\x27d)?\s+(?:already\s+)?prepared\b'
+    - '\bcancell?ed\s+after\s+(?:preparation|being\s+prepared|it\s+was\s+(?:already\s+)?prepared)\b'
+  unsupported_outcome:
+    - '\b(?:guaranteed|definitely)\b[^.!?\n;]{0,60}\b(?:approved|paid|compensated|eligible|accepted)\b'
+    - '\byour\s+(?:order|request|compensation)\s+(?:is|has\s+been|will\s+be)\s+(?:already\s+)?(?:approved|paid|guaranteed)\b'
+    - '\b(?:receive|credited|paid)\b[^.!?\n;]{0,55}\b(?:within|in)\s+(?:(?:1|one)\s*(?:-|to|or)\s*)?(?:2|two)\s+(?:business\s+|working\s+)?days?\b'
+  handoff:
+    - '\b(?:connect|transfer)\s+you\b'
+  wrong_timing:
+    - '\b(?:3|three)\s*(?:-|to|or)\s*(?:5|five)\s+(?:business|working)\s+days?\b'
+concept_exclusions:
+  inferred_preparation:
+    - '\b(?:if|unless|whether|not|never|cannot\s+assume|can\x27t\s+assume)\b[^.!?\n;]*\bprepared\b'
+  unsupported_outcome:
+    - '\b(?:if|once|when|whether)\s+(?:the|your)\s+(?:order|request|compensation)\s+(?:is|has\s+been)\s+approved\b'
+    - '\b(?:not|never|no|cannot|can\x27t)\b[^.!?\n;]*\b(?:guaranteed|definitely|approved|paid|compensated|eligible|accepted)\b'
+  unsolicited_guidance:
+    - '\b(?:do\s+not|don\x27t|no\s+need\s+to)\s+(?:open|tap|click|select|go|navigate|log)\b[^.!?\n;]*'
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep the same merchant conversation through the actual finish answer.}
+  - {id: once-only-greeting, type: no_repeated_greeting, concepts: [greeting], reason: BR-004 permits one applicable opening and no repeated greeting on continuation.}
+  - {id: education-only-boundaries, type: forbidden, concepts: [unsolicited_guidance, inferred_preparation, unsupported_outcome, handoff, wrong_timing], reason: Preserve the GF education-only target without invented preparation or awards or an unsolicited walkthrough or transfer.}
+turns:
+  - id: recent-age-only
+    merchant: "I'm a GrabFood merchant in Malaysia. The order was cancelled 1 day ago."
+    assertions:
+      - {id: applicable-opening, type: required, concepts: [greeting, assistant_identity, recording_notice, recording_purpose], reason: M01 utterance-first fallback supplies the outstanding greeting and recording disclosure once.}
+      - {id: recent-gf-education, type: required, concepts: [approval_1_2, usual, order_origin, regular_payout, policy_qualification, prepared_food_photo, later_review], reason: M02 deliver qualified usual GF approval after order made then regular payout and the prepared-food reminder for possible later review after more than two business days.}
+      - {id: further-help-before-finish, type: required, concepts: [further_help], reason: M03 ask further help and wait for the next actual merchant answer.}
+      - {id: no-extra-intake-or-early-close, type: forbidden, concepts: [unnecessary_intake, goodbye], reason: Reuse explicit GF and recent age without extra goal or preference intake and do not close before the finish answer.}
+  - id: explicit-finish
+    merchant: "No, that's all. I don't need any more help. Thank you."
+    assertions:
+      - {id: normal-closing-text, type: required, concepts: [goodbye], reason: M04 screen normal goodbye text only; Flow ownership and terminal exactly once require external evidence.}
+      - {id: no-restart-after-finish, type: forbidden, concepts: [unnecessary_intake, further_help, approval_1_2], reason: Honor the explicit finish without restarting intake or education or asking further help again.}

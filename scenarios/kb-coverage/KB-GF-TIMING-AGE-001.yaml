@@ -1,0 +1,56 @@
+# KB articles: UC4-MY-GF-TIMING-001, UC4-MY-GF-THRESHOLD-001, UC4-MY-SHARED-DEADLINES-001
+# Coverage: recent vs older routing boundaries, not all weekday cutoff values.
+schema_version: 1
+id: KB-GF-TIMING-AGE-001
+version: "0.1.1"
+description: GrabFood usual approval and payout, then older-order review without age-based rejection.
+product: GrabFood
+country: MY
+concepts:
+  approval:
+    - '\bapprov\w*\b[^.!?\n]{0,100}\b(?:1|one)\s*(?:-|to)\s*(?:2|two)\s+(?:business|working)\s+days?\b'
+  order_origin:
+    - '\bafter\b[^.!?\n]{0,35}\border\b[^.!?\n]{0,25}\b(?:made|placed)\b'
+  usual:
+    - '\b(?:usual\w*|typical\w*|generally|normally)\b'
+  policy:
+    - '\b(?:subject\s+to|under|according\s+to)\b[^.!?\n]{0,55}\b(?:polic\w*|guidelines)\b'
+  payout:
+    - '\bnext\s+(?:(?:regular|scheduled|normal)\s+)?(?:payout|payment)\s+cycle\b'
+    - '\bnext\s+regular\s+(?:payout|payment)\b'
+  wrong_timing:
+    - '\b(?:3|three)\s*(?:-|to)\s*(?:5|five)\s+(?:business|working)\s+days?\b'
+  review:
+    - '\b(?:review|request|payment\s+dispute|support)\b'
+  age_rejection:
+    - '\b(?:too\s+old|past\s+the\s+(?:cutoff|threshold)|(?:14|fourteen)\s+days?\s+old)\b[^.!?\n]{0,60}\b(?:ineligible|reject\w*|cannot\s+(?:submit|request))\b'
+    - '\b(?:automatically\s+ineligible|automatically\s+rejected|too\s+late\s+to\s+(?:submit|request))\b'
+  guarantee:
+    - '\b(?:guaranteed|definite)\s+(?:approval|payment|compensation)\b'
+    - '\b(?:approval|payment|compensation)\s+is\s+guaranteed\b'
+concept_exclusions:
+  approval:
+    - '\b(?:not|never)\b[^.!?\n;]*\b(?:1|one)\s*(?:-|to)\s*(?:2|two)\s+(?:business|working)\s+days?\b'
+  wrong_timing:
+    - '\b(?:not|rather\s+than)\s+(?:3|three)\s*(?:-|to)\s*(?:5|five)\s+(?:business|working)\s+days?\b'
+  review:
+    - '\bno\s+(?:(?:further|support|compensation)\s+)?(?:review|requests?)\b[^.!?\n;]*'
+    - '\b(?:cannot|can\x27t|do\s+not|don\x27t)\s+(?:still\s+)?(?:submit|request|seek|offer|obtain|provide|review)\b[^.!?\n;]*'
+  age_rejection:
+    - '\b(?:not|never|does\s+not|doesn\x27t)\b[^.!?\n;]*'
+  guarantee:
+    - '\b(?:no|not|never|cannot|can\x27t)\b[^.!?\n;]*'
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep merchant context across the follow-up.}
+  - {id: no-guarantee, type: forbidden, concepts: [guarantee], reason: Usual approval and payout are not a guaranteed payment date.}
+turns:
+  - id: recent-timing
+    merchant: "I'm a GrabFood merchant in Malaysia. The order was cancelled today. How long does compensation usually take to be approved, and when is it paid?"
+    assertions:
+      - {id: timing-and-payout, type: required, concepts: [approval, order_origin, usual, payout, policy], reason: Explain usual 1-2 business-day approval after the order was made and the next payout cycle subject to cancellation policy.}
+      - {id: correct-business-line, type: forbidden, concepts: [wrong_timing], reason: Do not substitute GrabMart approval timing.}
+  - id: older-review
+    merchant: "For a different GrabFood order cancelled 14 days ago, does being older make it automatically ineligible, or can I still request review?"
+    assertions:
+      - {id: retain-review-path, type: required, concepts: [review], reason: Older orders retain review or request guidance.}
+      - {id: no-age-only-rejection, type: forbidden, concepts: [age_rejection], reason: Internal routing age does not establish ineligibility or a deadline.}

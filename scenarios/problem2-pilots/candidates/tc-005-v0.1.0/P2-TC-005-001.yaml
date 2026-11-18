@@ -1,0 +1,103 @@
+# UNREVIEWED OFFLINE CANDIDATE. Do not execute before exact business-binding review.
+# P2-JOURNEYS-0.4 JRN-TC-005 M01-M08; original WB Scenarios!A8:F8; older elicited-dual trigger T05.
+# Fresh English utterance-first REST/text; preparation reference 2026-11-06, Asia/Kuala_Lumpur (UTC+08:00).
+# Catalog 2026-11-04 is historical; record actual initialization before execution, no injected clock.
+# Preserve age-only entry -> elicited dual goal -> education/offer -> acceptance; do not move dual intent into the opening.
+# Preserve App/all-at-once/no-loudspeaker: group only within status, request-entry and completion segments.
+# Proposed exact binding: authorized current Owner login supplied on acceptance; visible order, blank status, present App link, visible form.
+# These are staged synthetic merchant observations, not verified UI/backend facts. No History fallback, Portal detour or missing-form retry applies.
+# No no-photo branch is introduced. Evidence guidance remains GF prepared-food; availability and backend acceptance are not inferred.
+# Three gates protect following scripted action/result reports; natural wording remains subject to semantic review, not transcript identity.
+# Manual review retains conditional review decision, full education/old-photo qualifications, observation boundaries and no universal spoken role reminder.
+# Actual submission/finish remain distinct; Flow ownership/end_call/terminal exactly once, native-empty or audio need separate evidence.
+schema_version: 1
+id: P2-TC-005-001
+version: "0.1.0"
+description: Older GrabFood elicited dual goal with accepted all-at-once App status and conditional review submission in observation-bounded segments; unreviewed binding.
+product: GrabFood
+country: MY
+concepts:
+  greeting: ['(?:^|[.!?]\s+|\n)\s*(?:hi|hello|good\s+(?:morning|afternoon|evening))\b']
+  assistant: ['\bgrab\s+(?:ai|virtual|automated)\s+assistant\b', '\b(?:ai|virtual|automated)\s+assistant\b[^.!?\n]{0,40}\bgrab\b']
+  recording: ['\b(?:call|conversation)\b[^.!?\n]{0,55}\brecord(?:ed|ing)\b', '\brecording\b[^.!?\n]{0,35}\b(?:call|conversation)\b']
+  recording_purpose: ['\bquality(?:\s+assurance)?\b[^.!?\n]{0,45}\btraining\b', '\btraining\b[^.!?\n]{0,45}\bquality(?:\s+assurance)?\b']
+  goal_question: ['\bwhat\b[^.!?\n]{0,75}\b(?:like|want|need)\b[^.!?\n]{0,55}\b(?:know|help|assistance|order)\b[^.!?\n]{0,55}\?', '\bhow\s+(?:can|may)\s+i\s+(?:help|assist)\b[^.!?\n]{0,65}\?']
+  approval: ['\bapprov\w*\b[^.!?\n]{0,100}\b(?:1|one)\s*(?:-|to|or)\s*(?:2|two)\s+(?:business|working)\s+days?\b', '\b(?:1|one)\s*(?:-|to|or)\s*(?:2|two)\s+(?:business|working)\s+days?\b[^.!?\n]{0,80}\bapprov\w*\b']
+  usual: ['\b(?:usual(?:ly)?|typical(?:ly)?|generally|normal(?:ly)?)\b']
+  origin: ['\b(?:after|from)\b[^.!?\n]{0,35}\border\b[^.!?\n]{0,30}\b(?:made|placed|created)\b', '\b(?:after|from)\s+(?:the\s+)?order\s+(?:date|placement|creation)\b']
+  payout: ['\bnext\s+(?:(?:regular|scheduled|normal)\s+)?(?:payout|payment)\s+cycle\b', '\bnext\s+(?:regular|scheduled|normal)\s+(?:payout|payment)\b']
+  policy: ['\b(?:subject\s+to|under|according\s+to|depending\s+on)\b[^.!?\n]{0,65}\b(?:polic(?:y|ies)|guidelines)\b']
+  keep_food_photo: ['\b(?:keep|retain|save)\b[^.!?\n]{0,65}\b(?:photo(?:graph)?s?|pictures?|images?)\b[^.!?\n]{0,45}\bprepared\s+food\b', '\b(?:keep|retain|save)\b[^.!?\n]{0,65}\bprepared\s+food\s+(?:photo(?:graph)?s?|pictures?|images?)\b', '\b(?:photo(?:graph)?s?|pictures?|images?)\b[^.!?\n]{0,45}\bprepared\s+food\b[^.!?\n]{0,55}\b(?:keep|retain|save)\b']
+  guidance_offer: ['\b(?:would|do)\s+you\s+(?:like|want)\b[^.!?\n]{0,120}\b(?:guid(?:e|ed|ance|ing)|walk|show)\b[^.!?\n]{0,70}\?', '\b(?:may|can|could|shall)\s+i\b[^.!?\n]{0,100}\b(?:guid(?:e|ed|ance|ing)|walk|show)\b[^.!?\n]{0,90}\?']
+  orders: ['\b(?:open|tap(?:\s+on)?|click(?:\s+on)?|select|choose|go\s+(?:to|into))\s+(?:the\s+)?["\x27“]?orders\b']
+  cancelled: ['\b(?:open|tap(?:\s+on)?|click(?:\s+on)?|select|choose|go\s+(?:to|into))\s+(?:the\s+)?["\x27“]?cancelled\b(?!\s+order\b)']
+  open_order: ['\b(?:open|tap(?:\s+on)?|click(?:\s+on)?|select|choose)\s+(?:the|your|that|this)\s+(?:relevant\s+)?(?:cancelled\s+)?order\b']
+  status_question: ['\b(?:what|which)\s+(?:compensation\s+)?status\s+(?:(?:is\s+)?(?:shown|displayed|listed|visible)|do\s+you\s+see)\b[^.!?\n]{0,80}\?', '\bwhat\s+does\s+(?:the\s+)?compensation\s+status\s+(?:say|show)\b[^.!?\n]{0,60}\?', '\b(?:tell\s+me|let\s+me\s+know|report)\b[^.!?\n]{0,65}\b(?:compensation\s+status|what\s+(?:it|the\s+status)\s+(?:says|shows))\b']
+  request: ['\b(?:tap(?:\s+on)?|click(?:\s+on)?|open|select|choose|follow)\s+(?:the\s+)?(?:(?:link|button|option)\s+(?:(?:labelled|labeled|called|for)\s+)?)?["\x27“]?request\s+for\s+compensation\b']
+  article: ['\b(?:tap(?:\s+on)?|click(?:\s+on)?|open|select|choose)\s+(?:the\s+)?(?:(?:article|result|link)\s+(?:(?:titled|labelled|labeled|called)\s+)?)?["\x27“]?report\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\s+(?:further\s+)?(?:down|through|to\s+(?:the\s+)?bottom)\b']
+  form_question: ['\b(?:can|do)\s+you\s+(?:see|find)\s+(?:a\s+|the\s+)?(?:request\s+)?form\b[^.!?\n]{0,60}\?', '\b(?:tell\s+me|let\s+me\s+know|confirm)\s+(?:if|whether|when)\s+(?:you\s+can\s+see\s+(?:a\s+|the\s+)?(?:request\s+)?form|(?:a\s+|the\s+)?(?:request\s+)?form\s+(?:is\s+(?:visible|displayed|showing)|appears?))\b', '\bis\s+(?:the\s+)?(?:request\s+)?form\b[^.!?\n]{0,35}\b(?:visible|displayed|showing)\b[^.!?\n]{0,25}\?']
+  details: ['\b(?:enter|provide|complete|fill(?:\s+in|\s+out)?|type|add)\s+(?:the\s+|your\s+)?(?:required\s+)?order\s+(?:details|information)\b']
+  food_photo: ['\b(?:attach|upload|provide|add|keep)\b[^.!?\n;]{0,50}\b(?:photos?|photographs?|pictures?|images?)\b[^.!?\n;]{0,40}\bprepared\s+food\b', '\b(?:attach|upload|provide|add|keep)\b[^.!?\n;]{0,40}\bprepared\s+food\s+(?:photos?|photographs?|pictures?|images?)\b']
+  submit: ['\b(?:submit|send)\s+(?:the\s+|your\s+|this\s+)?(?:completed\s+)?(?:form|request)\b', '\b(?:tap(?:\s+on)?|click(?:\s+on)?|press|select)\s+(?:the\s+)?["\x27“]?submit\b']
+  submission_question: ['\b(?:let\s+me\s+know|tell\s+me|confirm)\b[^.!?\n;]{0,65}\b(?:submitted|sent|submission)\b', '\b(?:have|did)\s+you\b[^.!?\n]{0,40}\b(?:submit\w*|send|sent)\b[^.!?\n]{0,40}\?']
+  acknowledgement: ['\b(?:thank\s+you|thanks|noted|understood|i\s+have\s+noted)\b']
+  further_help: ['\b(?:anything|something)\s+else\b[^.!?\n]{0,90}\?', '\b(?:do\s+you\s+need|would\s+you\s+like)\s+(?:any\s+)?(?:further|more|other)\s+(?:help|assistance)\b[^.!?\n]{0,60}\?']
+  goodbye: ['\b(?:goodbye|bye|(?:thank\s+you|thanks)\s+for\s+(?:calling|contacting)|have\s+a\s+(?:nice|good|great|pleasant)\s+day|take\s+care)\b']
+  wrong_route: ['\b(?:open|use|go\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grab\s*merchant\s+)?portal\b', '\b(?:open|select|tap(?:\s+on)?)\s+(?:the\s+)?(?:history|date\s+selector)\b']
+  unsafe_claim: ['\b(?:guaranteed|definitely)\b[^.!?\n;]{0,60}\b(?:approved|paid|compensated|eligible|accepted)\b', '\bi\s+(?:have\s+|already\s+|will\s+)?submitted\b', '\bi\x27ve\s+(?:already\s+)?submitted\b']
+concept_exclusions:
+  request: &negated_action ['\b(?:do\s+not|don\x27t|cannot|can\x27t|no\s+need\s+to)\s+(?:open|tap|click|select|choose|follow|scroll|enter|provide|complete|fill|type|add|attach|upload|keep|submit|send|use|go|log)\b[^.!?\n;]*']
+  orders: *negated_action
+  cancelled: *negated_action
+  open_order: *negated_action
+  article: *negated_action
+  scroll: *negated_action
+  details: *negated_action
+  food_photo: *negated_action
+  submit: *negated_action
+  wrong_route: *negated_action
+  unsafe_claim: ['\b(?:no|not|never|cannot|can\x27t)\b[^.!?\n;]*\b(?:guaranteed|definitely)\b']
+assertions:
+  - {id: identity, type: session_continuity, reason: Retain current-order context and the merchant's dual goal through reported submission and finish.}
+  - {id: once-only-greeting, type: no_repeated_greeting, concepts: [greeting], reason: No repeated opening on continuation.}
+  - {id: supported-app-target, type: forbidden, concepts: [wrong_route, unsafe_claim], reason: This visible-order App target needs no History recovery or Portal detour and establishes no award or Agent submission.}
+turns:
+  - id: older-age-only
+    merchant: "I'm a GrabFood merchant in Malaysia. The order was cancelled 14 days ago."
+    assertions:
+      - {id: opening-and-inquiry, type: required, concepts: [greeting, assistant, recording, recording_purpose, goal_question], reason: M01 reuse older GF facts and ask the missing goal before education or navigation.}
+      - {id: wait-for-inquiry, type: forbidden, concepts: [approval, guidance_offer, orders, request, goodbye], reason: Wait for the merchant's actual goal; do not turn this into the upfront-dual entry.}
+  - id: elicited-dual-goal
+    merchant: "I'd like to know its compensation status and submit a request for review if still needed."
+    assertions:
+      - {id: education-and-offer, type: required, concepts: [approval, usual, origin, payout, policy, keep_food_photo, guidance_offer], reason: M02 provide qualified GF education and existing-photo reminder then offer status guidance and wait for acceptance.}
+      - {id: wait-for-acceptance, type: forbidden, concepts: [orders, cancelled, request, article, scroll, submit, goodbye], reason: An elicited dual goal does not erase this entry's required education/offer/wait segment.}
+  - id: accept-app-all-at-once
+    merchant: "Yes, please guide me. I'm on the GrabMerchant app home screen. Give me the steps all at once; no loudspeaker. I'm signed in with authorized Owner access for this store."
+    advance_when: [status-segment, no-request-before-status, supported-app-target]
+    assertions:
+      - {id: status-segment, type: required, concepts: [orders, cancelled, open_order, status_question], reason: M03/M04 reuse supplied preferences and group only the App status segment before the actual status report.}
+      - {id: no-request-before-status, type: forbidden, concepts: [request, article, scroll, form_question, details, food_photo, submit, submission_question, further_help, goodbye], reason: Wait for actual order visibility and status before selecting any conditional submission segment.}
+  - id: observed-blank-status-and-present-link
+    merchant: "The relevant cancelled order is visible and its details are open. No compensation status is displayed; it is blank. I still want a request for review, and the Request for compensation link is visible."
+    advance_when: [request-entry-segment, wait-for-visible-form, supported-app-target]
+    assertions:
+      - {id: request-entry-segment, type: required, concepts: [request, article, scroll, form_question], reason: M05/M06 use the blank-status observation and retained request to group present link then article then scroll and obtain form visibility; semantic review checks action ordering.}
+      - {id: wait-for-visible-form, type: forbidden, concepts: [details, food_photo, submit, submission_question, further_help, goodbye], reason: Never append completion instructions to request entry before the actual form-visibility report.}
+  - id: observed-visible-form
+    merchant: "I selected Request for compensation, opened Report a payment dispute and scrolled down. The request form is visible."
+    advance_when: [completion-segment, wait-for-submission-report, supported-app-target]
+    assertions:
+      - {id: completion-segment, type: required, concepts: [details, food_photo, submit, submission_question], reason: M07 visible form and already supplied authorized access permit grouped order-details and prepared-food evidence guidance then merchant self-submission and a report; Q7 qualifications remain applicable.}
+      - {id: wait-for-submission-report, type: forbidden, concepts: [further_help, goodbye], reason: Completion instructions are not a merchant submission report or a finish signal.}
+  - id: merchant-reported-submission
+    merchant: "I've completed and submitted the form myself."
+    assertions:
+      - {id: acknowledge-and-further-help, type: required, concepts: [acknowledgement, further_help], reason: M08 acknowledge the merchant's report conditionally and ask further help; no backend acceptance or approval is established.}
+      - {id: no-close-before-finish, type: forbidden, concepts: [goodbye, submit], reason: Submission alone is not finish and does not justify resubmission.}
+  - id: explicit-finish
+    merchant: "I'll wait for the result. That's all; I don't need any further help. Thank you."
+    assertions:
+      - {id: normal-closing-text, type: required, concepts: [goodbye], reason: M08 screen normal goodbye text only; Flow-owned terminal exactly once and audible completion need external evidence.}
+      - {id: no-restart, type: forbidden, concepts: [orders, cancelled, request, article, scroll, details, submit, further_help], reason: Respect the explicit finish rather than restarting any task.}

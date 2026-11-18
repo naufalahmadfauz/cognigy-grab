@@ -1,0 +1,46 @@
+# KB articles: UC4-MY-GM-STATUS-001
+# POC direct-status exception applies; existing full one-by-one scenario is separate.
+schema_version: 1
+id: KB-GM-STATUS-001
+version: "0.1.1"
+description: GrabMart Portal all-at-once status route and missing-entry uncertainty.
+product: GrabMart
+country: MY
+concepts:
+  finance: ['\b(?:open|click|select|choose|go\s+(?:to|into))\b[^.!?\n;,]{0,35}\bfinance\b']
+  transactions: ['\b(?:open|click|select|choose|go\s+(?:to|into))\b[^.!?\n;,]{0,35}\btransactions?\b']
+  period: ['\b(?:time|date)\s+(?:period|range)\b']
+  store: ['\bstores?\b']
+  category: ['\bcategory\b']
+  compensation: ['\b(?:select|choose|click|pick)\b[^.!?\n;,]{0,35}\bcompensation\s+for\s+cancell?ed\s+orders?\b']
+  observe: ['\b(?:whether|if|does|is|can\s+you|do\s+you)\b[^.!?\n]{0,120}\bcompensated\b']
+  app_route: ['\b(?:open|use|check|go\s+to)\b[^.!?\n,;]{0,60}\b(?:grab\s*merchant\s+)?app\b']
+  submission: ['\b(?:help\s+cent(?:re|er)|request\s+for\s+compensation|report\s+a\s+payment\s+dispute)\b']
+  rejection: ['\b(?:order|request|compensation|it)\s+(?:has\s+been|was|is)\s+rejected\b']
+  distinction: ['\b(?:not|doesn\x27t|cannot|can\x27t|does\s+not)\b']
+  partial_notice: ['\bcompensation\s+will\s+be\s+partial\b']
+concept_exclusions:
+  finance: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  transactions: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  compensation: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  observe: ['\b(?:do\s+not|don\x27t|never)\b[^.!?\n;]*']
+  app_route: ['\b(?:do\s+not|don\x27t|cannot|can\x27t)\b[^.!?\n;]*']
+  rejection: ['\b(?:not|does\s+not|doesn\x27t|cannot|can\x27t)\b[^.!?\n;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep the GrabMart conversation identity.}
+  - {id: partial-policy-review, type: forbidden, severity: warning, concepts: [partial_notice], reason: Preserve the observed partial-compensation notice for separate human review of its certainty.}
+turns:
+  - id: locate-status
+    merchant: "I'm a GrabMart merchant in Malaysia, already signed into GrabMerchant Portal. Show me all the steps together to check cancelled-order compensation status, then wait for what I see. I only want to check status."
+    advance_when: [portal-route, status-observation, no-food-route, wait-before-submission]
+    assertions:
+      - {id: portal-route, type: ordered, steps: [finance, transactions, [period, store], [category, compensation]], reason: Use Finance then Transactions then period/store then select the compensation Category.}
+      - {id: status-observation, type: required, concepts: [observe], reason: Ask whether the order appears as compensated.}
+      - {id: no-food-route, type: forbidden, concepts: [app_route], reason: GrabMart status uses the Portal rather than the GrabFood App status route.}
+      - {id: wait-before-submission, type: forbidden, concepts: [submission], reason: Status guidance ends at observation rather than submission navigation.}
+  - id: missing-entry
+    merchant: "No entry for the order appears in that report. Does that mean my compensation was rejected?"
+    assertions:
+      - {id: recheck-period, type: required, concepts: [period, distinction], reason: Missing entry is not rejection; the POC route rechecks the selected time period.}
+      - {id: no-inferred-rejection, type: forbidden, concepts: [rejection], reason: Do not determine rejection from a missing transaction.}
+      - {id: no-food-route, type: forbidden, concepts: [app_route], reason: Keep missing-order recovery in the Portal.}

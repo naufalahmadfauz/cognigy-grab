@@ -170,3 +170,48 @@ For the five-run demo command, use the [operator example](../README.md#one-by-on
 For configuration, use [advancement conditions](TESTING_GUIDELINES.md#advancement-conditions).
 The new checks establish guarded scripted progression against mocked replies;
 [deterministic-matching limitations](DECISIONS.md#known-limitations) still apply.
+
+---
+
+## Complete Portal status journey — 2026-10-29
+
+Added `GM-PORTAL-STATUS-FULL-001 v0.2.0` using the existing runner/schema. This
+verification is offline: mocked HTTP, validation, packaging, and dry-run evidence.
+The user's reported 5/5 live passes for `GM-PORTAL-STEPS-001` concern the earlier
+two-turn scenario, not this new five-turn journey.
+
+| Check | Result |
+|---|---|
+| Full pytest suite | **353 passed** in 6.91 seconds, including 60 new complete-journey cases |
+| New scenario CLI validation | `Validated 1 scenario(s); environment valid. No requests sent.` |
+| Five-run CLI dry-run | Five independent plans, **25 PLANNED turns**, 20 unevaluated gates, zero attempts, null outcomes/pass rate |
+| Dry-run reports | COMPLETE manifest; all **15 expected files** present; aggregate and per-run records agree |
+| Positive mocked journey | Exact five-message script, four passing gates, separate final question; period/store ordering and wording variants accepted |
+| Negative mocked journeys | Missing/negated instructions, missing date coverage/store, combined period/store plus Category, and Category plus observation stop all later requests and delays |
+| Final reply and policy notice | Final observation graded without a gate; exact observed partial-compensation notice yields a reported non-blocking WARN |
+| Mixed five-run mocked batches | Sequential and concurrent checks: PASS / PASS_WITH_WARNINGS / two FAILs / ERROR, 22 attempts, two gate-skipped turns, one transport-skipped turn |
+| Late transport/regrade | Missing replies leave gates unevaluated; same-path late gate stop regrades offline with captured content and source files preserved |
+| Installed wheel | Built and installed non-editably with `--no-index`; all three scenarios validate outside checkout under blocked networking; new scenario hash matches source |
+| Scope | Python runner/grading files and both existing scenarios match HEAD |
+
+Commands executed from the repository root:
+
+```powershell
+$base = Join-Path 'C:\Users\Nau\AppData\Local\Temp\opencode' ('uc4-full-suite-' + [guid]::NewGuid().ToString('N'))
+.\.venv\Scripts\python.exe -m pytest -q -p no:cacheprovider --basetemp $base
+.\.venv\Scripts\python.exe -m uc4_runner validate --scenario-file uc4_runner/scenarios/GM-PORTAL-STATUS-FULL-001.yaml
+.\.venv\Scripts\python.exe -m uc4_runner run --scenario GM-PORTAL-STATUS-FULL-001 --repeat 5 --dry-run
+```
+
+The default pytest temp/cache locations were inaccessible; a fresh approved temp
+directory and disabled cache allowed the suite to run without changing test logic.
+
+Dry-run: `reports/20261029T140239208155Z-4e9d9d7831a7/` (git-ignored).
+Scenario semantic SHA-256:
+`afb79a1209a52e11aab4d7300cad0f55ae5adf1c341319e32fdfeb41d2c06ab8`.
+
+The rubric records “compensation will be partial” for **separate human policy
+review**; it does not establish eligibility or an award. See the
+[notice treatment](TESTING_GUIDELINES.md#gm-portal-status-full-001-rubric) and
+[future five-live-repetition command/report expectations](../README.md#complete-portal-status-journey).
+No live Cognigy requests were executed for this scenario.

@@ -1,0 +1,48 @@
+# KB articles: UC4-MY-SHARED-PORTAL-001, UC4-MY-SHARED-REQUEST-001, UC4-MY-GM-SUBMIT-001
+# The POC Job mandates Search Bar; the KB's other two routes are deferred.
+schema_version: 1
+id: KB-PORTAL-SUBMIT-001
+version: "0.1.1"
+description: Portal-first payment dispute route and role access after a missing form.
+product: GrabMart
+country: MY
+concepts:
+  help: ['\b(?:open|click|select|choose|go\s+(?:to|into))\b[^.!?\n;,]{0,35}\bhelp\s+cent(?:re|er)\b']
+  search: ['\bsearch\s+(?:bar|box|field)\b', '\b(?:search|type)\b[^.!?\n]{0,25}\bdispute\b']
+  query: ['\b(?:search(?:\s+for)?|type|enter)\s+["\x27\u201c]?dispute\b']
+  dispute: ['\breport\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\b']
+  visibility: ['\b(?:can|do)\s+you\s+see\b', '\b(?:if|whether)\b[^.!?\n]{0,70}\b(?:visible|see|form)\b', '\bis\s+(?:the\s+)?form\b[^.!?\n]*\?']
+  completion: ['\b(?:fill|complete|submit|attach|upload)\b[^.!?\n]{0,50}\b(?:form|details|request|photo|evidence)\b']
+  other_route: ['\b(?:common\s+problems|browse\s+by\s+services|request\s+for\s+compensation|finance|transactions)\b']
+  owner: ['\bowner\b']
+  manager: ['\bmanager\b']
+  role_assumed: ['\byou\s+(?:are\s+not|aren\x27t|do\s+not\s+have|don\x27t\s+have)\b[^.!?\n]{0,30}\b(?:owner|manager)\b']
+  rejection: ['\b(?:you|your\s+order)\s+(?:are|is)\s+ineligible\b']
+  partial_notice: ['\bcompensation\s+will\s+be\s+partial\b']
+concept_exclusions:
+  help: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  search: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  dispute: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  scroll: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  role_assumed: ['\b(?:if|whether)\b[^.!?\n;]*']
+  rejection: ['\b(?:not|does\s+not|doesn\x27t|cannot|can\x27t)\b[^.!?\n;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Preserve confirmed article and scroll observations.}
+  - {id: no-inferred-ineligibility, type: forbidden, concepts: [rejection], reason: Failed navigation does not prove ineligibility.}
+  - {id: partial-policy-review, type: forbidden, severity: warning, concepts: [partial_notice], reason: Retain the observed notice for separate human policy review.}
+turns:
+  - id: portal-entry
+    merchant: "I'm a GrabMart merchant in Malaysia with an order cancelled 14 days ago. I want to submit a compensation request, not check status. I'm already signed into GrabMerchant Portal on my computer. Guide me to the form all at once; no loudspeaker needed."
+    advance_when: [search-route, search-term, observe-form, wait-for-form, prescribed-route]
+    assertions:
+      - {id: search-route, type: ordered, steps: [help, search, dispute, scroll], reason: Follow the POC Help Centre Search Bar payment-dispute route and scroll.}
+      - {id: search-term, type: required, concepts: [query], reason: Search for dispute to reach the prescribed article.}
+      - {id: observe-form, type: required, concepts: [visibility], reason: Ask whether the form is visible.}
+      - {id: wait-for-form, type: forbidden, concepts: [completion], reason: Wait for form visibility before completion instructions.}
+      - {id: prescribed-route, type: forbidden, concepts: [other_route], reason: Use the prescribed Portal Search Bar route rather than an App link or other Portal route.}
+  - id: missing-form-role
+    merchant: "I opened Report a payment dispute and scrolled down, but the form is still missing. Which account role is allowed to submit?"
+    assertions:
+      - {id: authorised-role, type: required, concepts: [owner, manager], reason: Explain authorised Owner or Manager access without presuming the current role.}
+      - {id: no-role-assumption, type: forbidden, concepts: [role_assumed], reason: Missing form alone does not prove the merchant lacks the required role.}

@@ -1,0 +1,139 @@
+# DRAFT BINDING / NOT REVIEWED FOR EXECUTION. No Endpoint authorization.
+# P2-JOURNEYS-0.4: JRN-TC-003 M01/M03-M10; OD002-REVIEW-0.2 situation A.
+# R = OD007-OD010-OD009-REVIEW-0.2: A1/B3/C6; Q7 no-photo control proposed here.
+# Binding/evidence: docs/problem2/PILOT_EXECUTION_PREPARATION.md. CT literal adoption pending.
+# Utterance-first, App home, 14-day cancellation age; reference date is external metadata.
+# Every non-final reply gates the NEXT merchant observation. Regexes screen text only.
+schema_version: 1
+id: P2-TC-003-001
+version: "0.1.0"
+description: Draft original GF visible-blank status to App review-request submission and explicit finish; one-by-one, initially visible form, qualified no-photo control.
+product: GrabFood
+country: MY
+concepts:
+  orders: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?orders\b']
+  cancelled: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?cancelled\b']
+  order_question: ['\b(?:can|do)\s+you\s+see\b[^.!?\n]{0,65}\b(?:relevant|cancelled|your|the)\s+order\b[^.!?\n]*\?', '\b(?:is|does)\s+(?:the|your)\s+(?:cancelled\s+)?order\b[^.!?\n]{0,50}\b(?:visible|appear|listed|show)\w*\b[^.!?\n]*\?']
+  open_order: ['\b(?:open|tap|select|choose)\s+(?:the|your|that|this)\s+(?:(?:relevant|cancelled)\s+)?order\b']
+  status_question: ['\b(?:what|which)\s+(?:compensation\s+)?status\b[^.!?\n]*\?', '\b(?:tell\s+me|read\s+out|check\s+and\s+tell\s+me)\b[^.!?\n]{0,65}\bcompensation\s+status\b']
+  request: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?request\s+for\s+compensation\b']
+  article: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?report\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\s+(?:down|through|to)\b']
+  form_question: ['\b(?:can|do)\s+you\s+see\s+(?:the\s+)?(?:(?:request|compensation)\s+)?form\b[^.!?\n]*\?', '\bis\s+(?:the\s+)?(?:(?:request|compensation)\s+)?form\b[^.!?\n]{0,35}\b(?:visible|displayed)\b[^.!?\n]*\?']
+  details: ['\b(?:enter|provide|complete|fill\s+in)\s+(?:the\s+|your\s+)?order\s+(?:details|information)\b']
+  food_photo: ['\b(?:attach|upload|provide|add|keep)\b[^.!?\n;]{0,50}\b(?:photo|picture)\b[^.!?\n;]{0,35}\bprepared\s+food\b']
+  wrong_photo: ['\b(?:photo|picture)\b[^.!?\n;]{0,35}\bpacked\s+items\b']
+  no_photo_continue: ['\b(?:continue|proceed|submit)\b[^.!?\n;]{0,45}\bwithout\b[^.!?\n;]{0,25}\bphoto\b']
+  supporting_info: ['\b(?:add|provide|include|enter)\b[^.!?\n;]{0,45}\b(?:available|supporting)\s+(?:information|details|evidence)\b']
+  submit: ['\b(?:submit|send)\s+(?:the\s+|your\s+|completed\s+)?(?:form|request)\b']
+  submission_question: ['\b(?:let\s+me\s+know|tell\s+me|confirm)\b[^.!?\n;]{0,55}\b(?:submitted|sent)\b', '\b(?:have|did)\s+you\b[^.!?\n]{0,40}\bsubmit\w*\b[^.!?\n]*\?']
+  acknowledgement: ['\b(?:thank\s+you|thanks|noted)\b']
+  further_help: ['\b(?:anything|something)\s+else\b[^.!?\n]*\?', '\b(?:do\s+you\s+need|can\s+i\s+offer)\s+(?:any\s+)?(?:further|more|other)\s+(?:help|assistance)\b[^.!?\n]*\?']
+  goodbye: ['\b(?:goodbye|thank\s+you\s+for\s+calling|have\s+a\s+(?:nice|good)\s+day)\b']
+  handoff: ['\b(?:connect|transfer)\s+you\b', '\b(?:i\s+will|i\x27ll|let\s+me)\s+(?:connect|transfer)\b', '\b(?:would|do)\s+you\s+(?:like|want)\b[^.!?\n]{0,55}\b(?:speak|talk)\b[^.!?\n]{0,35}\b(?:person|agent|support)\b']
+  agent_submission: ['\bi\s+(?:have\s+|already\s+|will\s+)?submitted\b', '\bi\x27ve\s+(?:already\s+)?submitted\b', '\bi\s+will\s+submit\b']
+  award_guarantee: ['\b(?:guaranteed|definitely)\b[^.!?\n;]{0,50}\b(?:approved|paid|compensated|accepted)\b', '\byour\s+(?:order|request|compensation)\s+(?:is|will\s+be)\s+(?:approved|paid|guaranteed)\b']
+  wrong_route: ['\b(?:open|use|go\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grabmerchant\s+)?portal\b', '\b(?:open|select|tap)\s+(?:the\s+)?(?:history|finance|transactions|date\s+selector)\b']
+  timeline: ['\b(?:one\s+to\s+two|1\s*-\s*2|three\s+to\s+five|3\s*-\s*5)\s+(?:business|working)\s+days\b']
+  early_close: ['\b(?:goodbye|thank\s+you\s+for\s+calling|have\s+a\s+(?:nice|good)\s+day)\b']
+concept_exclusions:
+  orders: &not_action ['\b(?:do\s+not|don\x27t|never)\s+(?:open|tap|select|choose|go|click|scroll|enter|provide|complete|fill|attach|upload|add|keep|include|submit|send|use)\b[^.!?\n,;]*']
+  cancelled: *not_action
+  open_order: *not_action
+  request: *not_action
+  article: *not_action
+  scroll: *not_action
+  details: *not_action
+  food_photo: *not_action
+  supporting_info: *not_action
+  submit: *not_action
+  no_photo_continue: ['\b(?:cannot|can\x27t|do\s+not|don\x27t|never)\s+(?:continue|proceed|submit)\b[^.!?\n,;]*']
+  handoff: ['\b(?:will\s+not|won\x27t|cannot|can\x27t|do\s+not|don\x27t)\s+(?:connect|transfer)\b[^.!?\n,;]*']
+  award_guarantee: ['\b(?:not|never)\s+guaranteed\b[^.!?\n,;]*']
+  wrong_route: *not_action
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep one current-order conversation; product metadata alone is not merchant context.}
+  - {id: no-handoff, type: forbidden, concepts: [handoff], reason: This selected successful App target has no handoff trigger or transfer consent.}
+  - {id: no-agent-submission, type: forbidden, concepts: [agent_submission], reason: Only the merchant reports self-submission; never claim the Agent submitted.}
+  - {id: no-guarantee, type: forbidden, concepts: [award_guarantee], reason: A review request is not accepted evidence or approved compensation.}
+  - {id: app-target, type: forbidden, concepts: [wrong_route], reason: The visible-order full App target needs neither History recovery nor a Portal detour.}
+  - {id: food-evidence, type: forbidden, concepts: [wrong_photo], reason: Preserve prepared-food rather than packed-items evidence.}
+turns:
+  - id: direct-dual-entry
+    merchant: "I'm a GrabFood merchant in Malaysia. This prepared-food order was cancelled 14 days ago. Help me check its compensation status and, if still needed, submit a request for review. I'm on the GrabMerchant app home screen with authorized Owner access. Guide me one step at a time; no loudspeaker."
+    advance_when: [next-step, one-action, direct-entry, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [orders], reason: M01/M03/M04 use supplied context and start with Orders.}
+      - {id: one-action, type: forbidden, concepts: [cancelled, order_question, open_order, status_question, request, article, scroll, details, submit, early_close], reason: Wait for Orders completion before later observations or actions.}
+      - {id: direct-entry, type: forbidden, concepts: [timeline], reason: M02 has no trigger on this clear upfront dual request.}
+  - id: orders-open
+    merchant: "Orders is open. What is the next step?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [cancelled], reason: M04 move to Cancelled after the reported action.}
+      - {id: one-action, type: forbidden, concepts: [orders, order_question, open_order, status_question, request, article, scroll, details, submit, early_close], reason: Wait for Cancelled before asking for order visibility.}
+  - id: cancelled-open
+    merchant: "Cancelled is open."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [order_question], reason: M04 ask whether the relevant order is visible; do not presume it.}
+      - {id: one-action, type: forbidden, concepts: [orders, cancelled, open_order, status_question, request, article, scroll, details, submit, early_close], reason: Obtain visibility before opening the order or deciding status.}
+  - id: order-visible
+    merchant: "I can see that cancelled order in the list."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [open_order, status_question], reason: M05 open the visible order and request its actual compensation-status observation.}
+      - {id: one-action, type: forbidden, concepts: [orders, cancelled, request, article, scroll, details, submit, early_close], reason: Opening and reporting status is this action; wait for its result before submission.}
+  - id: blank-status-link-present
+    merchant: "The order details are open. No compensation status is displayed; it is blank. I still want to submit a request for review. The Request for compensation link is visible."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [request], reason: M06/M07 use explicit blank status and retained intent to open the present App link.}
+      - {id: one-action, type: forbidden, concepts: [orders, cancelled, open_order, article, scroll, form_question, details, submit, early_close], reason: Wait for the link action before opening the article or claiming a form.}
+  - id: request-link-opened
+    merchant: "I tapped Request for compensation. I can see Report a payment dispute."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [article], reason: M07 open the identified article rather than treating the link as a form.}
+      - {id: one-action, type: forbidden, concepts: [request, scroll, form_question, details, submit, early_close], reason: Wait for article opening before scrolling.}
+  - id: article-opened
+    merchant: "Report a payment dispute is open."
+    advance_when: [next-step, wait-for-form, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [scroll, form_question], reason: M07 scroll and request the separate form-visibility result.}
+      - {id: wait-for-form, type: forbidden, concepts: [request, article, details, food_photo, supporting_info, submit, early_close], reason: Do not complete or submit a form before the merchant reports visibility.}
+  - id: form-visible
+    merchant: "I scrolled down and the request form is visible. What should I enter first?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [details], reason: M08 start merchant-owned completion only after visible form and known authorized access.}
+      - {id: one-action, type: forbidden, concepts: [request, article, scroll, food_photo, supporting_info, submit, early_close], reason: Order-details completion precedes the next evidence action.}
+  - id: details-entered
+    merchant: "I entered the order details. What evidence should I provide?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target, food-evidence]
+    assertions:
+      - {id: next-step, type: required, concepts: [food_photo], reason: M08 retain the prepared-food photo recommendation without assuming availability.}
+      - {id: one-action, type: forbidden, concepts: [request, article, scroll, details, submit, early_close], reason: Wait for evidence availability before the next completion action.}
+  - id: no-photo
+    merchant: "I don't have a photo of the prepared food. I do have the order details and supporting information. How can I continue?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target, food-evidence]
+    assertions:
+      - {id: next-step, type: required, concepts: [no_photo_continue, supporting_info], reason: Qualified Q7 continuation uses available information without inventing substitutes or guaranteed acceptance; manual review covers qualifications.}
+      - {id: one-action, type: forbidden, concepts: [request, article, scroll, food_photo, submit, early_close], reason: Do not force the unavailable photo or advance to submission before information completion.}
+  - id: information-entered
+    merchant: "I added the available supporting information. What is the next step?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [submit, submission_question], reason: M08 ask the merchant to submit and report the result; an instruction is not submission evidence.}
+      - {id: one-action, type: forbidden, concepts: [request, article, scroll, details, food_photo, supporting_info, early_close], reason: Wait for the merchant's submission report without repeating earlier actions or closing.}
+  - id: submission-reported
+    merchant: "I submitted the request."
+    advance_when: [next-step, no-false-finish, no-handoff, no-agent-submission, no-guarantee, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [acknowledgement, further_help], reason: M09 acknowledge reported submission and ask further help; it does not establish payment resolution.}
+      - {id: no-false-finish, type: forbidden, concepts: [submit, early_close], reason: Do not close or resubmit before an explicit finish signal.}
+  - id: explicit-finish
+    merchant: "No, I don't need any more help. Thank you."
+    assertions:
+      - {id: closing-text, type: required, concepts: [goodbye], reason: M10 screen ordinary closing text only; Flow ownership and terminal execution require external evidence.}
+      - {id: no-restart, type: forbidden, concepts: [orders, request, article, scroll, details, submit, further_help], reason: Respect explicit finish rather than restart the task.}

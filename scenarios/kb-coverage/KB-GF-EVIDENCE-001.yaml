@@ -1,0 +1,35 @@
+# KB articles: UC4-MY-GF-EVIDENCE-001
+# Both C01 (photo/no-photo) and C02 (preparation assumption) are exercised.
+schema_version: 1
+id: KB-GF-EVIDENCE-001
+version: "0.1.0"
+description: GrabFood no-photo submission and limits of the provisional preparation condition.
+product: GrabFood
+country: MY
+concepts:
+  photo: ['\b(?:photo|picture|image)\b[^.!?\n]{0,40}\bprepared\s+food\b']
+  continue_request: ['\b(?:can|may|able\s+to|continue|proceed)\b[^.!?\n]{0,65}\b(?:submit|submission|request|form)\b']
+  supporting_info: ['\b(?:supporting|clear|complete|detailed)\s+(?:information|details|description)\b']
+  wrong_evidence: ['\b(?:photo|picture|image)\b[^.!?\n]{0,40}\bpacked\s+items\b']
+  no_photo_denial: ['\b(?:without|no|missing)\s+(?:a\s+)?photo\b[^.!?\n]{0,60}\b(?:automatically\s+(?:rejected|ineligible)|cannot\s+submit|will\s+be\s+rejected)\b']
+  preparation: ['\bbefore\b[^.!?\n]{0,40}\b(?:prepar\w*|cook\w*)\b']
+  scope_limit: ['\b(?:outside|not\s+(?:covered|eligible|supported)|does\s+not\s+qualify)\b']
+  uncertainty: ['\b(?:unconfirmed|not\s+(?:formally\s+)?confirmed|pending\b[^.!?\n]{0,30}\bconfirmation|cannot\s+confirm|can\x27t\s+confirm)\b']
+  no_photo_proof: ['\b(?:photo|picture|image)\b[^.!?\n]{0,45}\b(?:does\s+not|doesn\x27t|cannot|can\x27t)\b[^.!?\n]{0,30}\b(?:prove|establish|mean|show)\b']
+concept_exclusions:
+  continue_request: ['\b(?:cannot|can\x27t|do\s+not|don\x27t)\b[^.!?\n;]*']
+  wrong_evidence: ['\b(?:not|rather\s+than)\b[^.!?\n;]*']
+  no_photo_denial: ['\b(?:does\s+not|doesn\x27t|not\s+necessarily)\b[^.!?\n;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep the GrabFood evidence context.}
+  - {id: no-photo-alone-denial, type: forbidden, concepts: [no_photo_denial], reason: Missing photo alone establishes neither denial nor ineligibility.}
+turns:
+  - id: no-photo
+    merchant: "I'm a GrabFood merchant in Malaysia. The order was cancelled 14 days ago. What photo is needed for compensation review, and can I still send a request if I don't have it?"
+    assertions:
+      - {id: evidence-and-continuation, type: required, concepts: [photo, continue_request, supporting_info], reason: Request a prepared-food photo but allow submission with clear supporting information without already having one.}
+      - {id: correct-business-line, type: forbidden, concepts: [wrong_evidence], reason: Use prepared-food rather than packed-items evidence.}
+  - id: preparation-boundary
+    merchant: "Does lacking the photo prove the cancellation happened before food preparation? If it really was before preparation, is the compensation rule formally confirmed?"
+    assertions:
+      - {id: provisional-preparation-rule, type: required, concepts: [preparation, scope_limit, uncertainty, no_photo_proof], reason: Separate the provisional before-preparation exclusion from final policy and from what a missing photo proves.}

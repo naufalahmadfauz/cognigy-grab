@@ -1,0 +1,41 @@
+# KB articles: UC4-MY-GF-SUBMIT-001, UC4-MY-SHARED-REQUEST-001, UC4-MY-GF-EVIDENCE-001
+schema_version: 1
+id: KB-GF-SUBMIT-001
+version: "0.1.1"
+description: GrabFood App request entry followed by merchant-owned form completion.
+product: GrabFood
+country: MY
+concepts:
+  request: ['\b(?:tap|click|select|choose|open)\b[^.!?\n;,]{0,35}\brequest\s+for\s+compensation\b']
+  dispute: ['\breport\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\b']
+  form: ['\bform\b']
+  visibility: ['\b(?:can|do)\s+you\s+see\b', '\b(?:if|whether)\b[^.!?\n]{0,70}\b(?:visible|see|form)\b', '\bis\s+(?:the\s+)?form\b[^.!?\n]*\?']
+  completion: ['\b(?:fill|complete|submit|attach|upload)\b[^.!?\n]{0,50}\b(?:form|details|request|photo|evidence)\b']
+  details: ['\border\s+(?:details|information|id)\b']
+  food_photo: ['\b(?:photo|picture|image)\b[^.!?\n]{0,35}\bprepared\s+food\b']
+  wrong_evidence: ['\b(?:photo|picture|image)\b[^.!?\n]{0,35}\bpacked\s+items\b']
+  merchant_submit: ['\b(?:submit|send)\s+(?:the\s+|your\s+|this\s+)?(?:form|request|it)\b']
+  agent_submitted: ['\bi\s+(?:have\s+|already\s+|have\s+already\s+)?submitted\b', '\bi\x27ve\s+(?:already\s+)?submitted\b']
+concept_exclusions:
+  request: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  dispute: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  scroll: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  wrong_evidence: ['\b(?:not|rather\s+than)\b[^.!?\n;]*']
+  agent_submitted: ['\b(?:not|never)\b[^.!?\n;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Preserve the confirmed location and business line.}
+  - {id: no-agent-submission, type: forbidden, concepts: [agent_submitted], reason: The merchant completes and submits the request.}
+turns:
+  - id: request-entry
+    merchant: "I'm a GrabFood merchant in Malaysia. My order was cancelled 14 days ago. I only want to submit a compensation request. Its details are open in the GrabMerchant app and Request for compensation is visible. Guide me to the form all at once; no loudspeaker needed."
+    advance_when: [request-route, form-observation, wait-for-form]
+    assertions:
+      - {id: request-route, type: ordered, steps: [request, dispute, scroll], reason: Open Request for compensation then Report a payment dispute and scroll for the form.}
+      - {id: form-observation, type: required, concepts: [form, visibility], reason: Ask whether the form is visible before its completion.}
+      - {id: wait-for-form, type: forbidden, concepts: [completion], reason: Keep form completion after the merchant reports visibility.}
+  - id: form-visible
+    merchant: "The form is visible now. What details and evidence should I provide, and who submits it?"
+    assertions:
+      - {id: complete-form, type: required, concepts: [details, food_photo, merchant_submit], reason: Give order details and prepared-food photo guidance and tell the merchant to submit.}
+      - {id: correct-evidence, type: forbidden, concepts: [wrong_evidence], reason: Do not substitute GrabMart packed-items evidence.}

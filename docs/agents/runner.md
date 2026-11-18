@@ -11,7 +11,7 @@ Read the sections for each affected behavior before editing:
 |---|---|
 | Scenario syntax or grading | [Scenario schema and rules](../TESTING_GUIDELINES.md#scenario-schema-v1); the affected scenario definition holds its executable expectations |
 | Run isolation or turn sequencing | [Data flow and identities](../ARCHITECTURE.md#data-flow-and-identities) |
-| Turn advancement | [Advancement conditions](../TESTING_GUIDELINES.md#advancement-conditions) and [guarded progression](../ARCHITECTURE.md#guarded-progression) |
+| Advancement gates | For authoring, [advancement conditions](../TESTING_GUIDELINES.md#advancement-conditions); for execution or reports, [guarded progression and gate evidence](../ARCHITECTURE.md#guarded-progression) |
 | Endpoint transport or error handling | [REST behavior](../ARCHITECTURE.md#rest-behavior) |
 | Transcript normalization or trace extraction | [Normalization](../ARCHITECTURE.md#normalization) |
 | Regrade validation, evaluation, or provenance | [Offline regrading](../ARCHITECTURE.md#offline-regrading) |
@@ -36,7 +36,7 @@ Select checks for every affected boundary:
 |---|---|
 | Runtime logic | Relevant mocked tests pass; changed behavior has accepted and deviating examples |
 | Scenarios or grading | Scenario validation and matching regression examples pass; changed expectations have a new scenario version |
-| Turn advancement | Mocked checks cover gate pass/stop, unsent skipped turns, transport ERRORs, and unchanged ungated progression |
+| Advancement gates | The affected cases in [advancement verification](../TESTING_GUIDELINES.md#advancement-verification) pass |
 | Regrade implementation | Mocked regression checks satisfy the [regrade completion criteria](../TESTING_GUIDELINES.md#offline-regrade-workflow); incompatible evidence is rejected before output creation |
 | Scheduling or reports | Mocked multi-turn batch checks pass for isolation, turn order, and report metrics; inspect affected generated artifacts |
 | CLI planning | Offline validation and dry-run succeed; planned outcomes remain unevaluated |

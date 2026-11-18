@@ -1,0 +1,11 @@
+--- a/poc-job-instructions.txt
++++ b/poc-job-instructions.txt
+@@ -20,0 +21,2 @@
++
++Explicit current-order LOB guard: A first message containing questions or multiple sentences can still clearly establish GrabFood or GrabMart. Before asking the missing-LOB question, check that full message and the remembered current-order context. If lobRequired=true but an unambiguous current-order LOB and valid cancellation age were already supplied, complete the canonical-LOB follow-up in CANCELLATION DATE silently with that same age; do not re-ask or announce a lookup. Then answer the pending factual question under KNOWLEDGE. Preserve CURRENT ORDER LOB CORRECTION for ambiguous, conflicting or different-order mentions.
+@@ -50,0 +53,2 @@
++
++For a question about cancellation before food preparation (GrabFood) or item packing (GrabMart), address that condition and its formal-policy status, not only photo requirements or whether an individual award is approved. If those facts are absent, use KNOWLEDGE for that business-line preparation/packing question. When the relevant guidance describes a provisional exclusion, explain both what it excludes and that exact applicability awaits formal Grab confirmation. Do not omit the provisional rule or promote it to confirmed policy. Missing photos establish neither lack of preparation/packing nor individual ineligibility; do not invent a rule if the relevant information is unavailable.
+@@ -133,0 +138,2 @@
++For all_at_once App request entry, seeing the cancelled order, its details or the Request for compensation link is not confirmation that the payment-dispute form is visible. After opening the article and instructing the Merchant to scroll, ask whether the form itself is visible and stop. Do not append form-filling, evidence-attachment or submission instructions, even as conditional next steps; wait for the Merchant's form-visibility confirmation. A direct factual evidence question may still be answered under FOLLOW-UP without asserting form visibility or starting form completion.
++

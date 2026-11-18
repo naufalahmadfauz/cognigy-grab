@@ -1,5 +1,12 @@
 # Writing scenarios and interpreting results
 
+Read the section for your task:
+
+- **Authoring:** Use the [schema](#scenario-schema-v1); when adding a gate, also use [advancement conditions](#advancement-conditions).
+- **Reports:** Use [outcome interpretation](#outcomes-and-report-interpretation).
+- **Regrading:** Follow the [offline workflow](#offline-regrade-workflow).
+- **Verification:** Use [development conventions](#development-verification-and-future-regression-use) and, for gate changes, [advancement verification](#advancement-verification).
+
 ## Commands
 
 For installation and batch commands, use the [operator guide](../README.md).
@@ -56,7 +63,7 @@ turns:
 | `concepts` | yes | Nonempty mapping of name → nonempty regex alternative list |
 | `concept_exclusions` | no | Existing concept name → nonempty regex list of locally excluded match spans |
 | `assertions` | no | Rules applied to every turn |
-| `turns` | yes | Nonempty ordered list of `{id, merchant, assertions}`, with optional `advance_when` per turn |
+| `turns` | yes | Nonempty ordered list of `{id, merchant, assertions}`; for optional `advance_when`, see [advancement conditions](#advancement-conditions) |
 
 Each turn needs a unique string `id`, nonempty merchant message, and assertions
 list. At least one applicable hard behavioral rule is required per turn, including
@@ -97,48 +104,6 @@ Previous Agent replies never supply merchant context; unlisted required concepts
 must occur in the current Agent reply. Result reasons identify concepts supplied
 by merchant context.
 
-### Advancement conditions
-
-Since v0.2, a non-final turn may declare `advance_when`: a nonempty list of unique
-assertion IDs from that turn's local or common assertions. All referenced assertions
-must PASS before the next scripted merchant message is sent. For example, this turn
-references its existing Finance check:
-
-```yaml
-- id: open-finance
-  merchant: "I'm already in GrabMerchant Portal. Give me the first navigation step only."
-  advance_when: [finance-step]
-  assertions:
-    - id: finance-step
-      type: required
-      concepts: [finance_instruction]
-      reason: Instruct the merchant to open Finance.
-```
-
-Define `finance_instruction` in `concepts` and supply the subsequent scripted turn.
-The complete [Portal demo](../uc4_runner/scenarios/GM-PORTAL-STEPS-001.yaml) also
-references forbidden checks to reject jumping ahead or substituting an app route.
-It demonstrates Finance → scripted acknowledgment → Transactions, stopping before
-the acknowledgment when the first reply deviates.
-
-Gate references must be applicable hard `required`, `forbidden`, or `ordered`
-assertions evaluated against the current reply. Warning/identity/greeting rules,
-business-line mismatches, merchant-context allowances, and `unless_*` or
-`warn_if_response_concepts` conditions are rejected as gate references. These
-restrictions keep gate results unambiguously PASS or FAIL for usable replies.
-Concept alternatives, typography normalization, and local exclusions work as usual;
-there is no literal-sentence requirement.
-
-An unmet gate leaves the current reply and its FAIL assertions in the report and
-marks every later turn SKIPPED. Only listed assertions control advancement: other
-hard failures still grade the run, and warnings still warn, without stopping it.
-Without `advance_when`, the original sequential behavior applies. A final turn
-uses ordinary grading because there is no next message to guard.
-
-Missing/empty replies and transport/protocol failures remain ERRORs; their gates
-are unevaluated. Dry-run gates are also unevaluated. For recorded gate fields and
-skip provenance, read [guarded progression](ARCHITECTURE.md#guarded-progression).
-
 ### Concept matching
 
 For each concept, any regex alternative suffices. Matching is Python `re` with
@@ -157,6 +122,49 @@ negation or fuzzy matching; keep each exclusion narrow and test counterexamples.
 An ordered-navigation rule can find each concept's earliest match after the previous
 step. Extra mentions earlier in a reply do not invalidate a correctly ordered route.
 Grouping `[time_period, store]` permits either order within that selection step.
+
+## Advancement conditions
+
+The optional `advance_when` field (v0.2+) selects existing assertions as a turn's
+advancement gate. This excerpt from the
+[Portal demo](../uc4_runner/scenarios/GM-PORTAL-STEPS-001.yaml) selects its Finance,
+pacing, and Portal-route checks:
+
+```yaml
+advance_when: [finance-step, one-step-only, no-app-substitution]
+```
+
+For a complete definition, use the linked scenario's concepts, assertions, and
+merchant script. For the five-run command, use the [operator example](../README.md#one-by-one-portal-demonstration).
+
+### Gate eligibility
+
+A gate must satisfy these constraints:
+
+- The list is nonempty, with unique assertion IDs from that turn's local or common assertions.
+- Each referenced rule is `required`, `forbidden`, or `ordered`, with severity `fail`
+  (the default) and applicable to the scenario's business line.
+- Each rule checks the current reply: `allow_merchant_context`, `unless_*`, and
+  `warn_if_response_concepts` fields are absent.
+- The turn has a following scripted turn. Final turns use ordinary grading.
+
+These constraints make each selected assertion PASS or FAIL for a usable reply.
+Matching follows the shared [concept rules](#concept-matching), including alternatives
+and local exclusions. A required instruction concept can match an action verb and
+menu label; a bare menu-name match alone does not establish an instruction.
+
+### Gate results
+
+| Captured result | Progression and grading |
+|---|---|
+| All selected assertions PASS | Send the next scripted message, even if an unselected assertion fails or warns; those results still affect the run's grade |
+| A selected assertion FAILs | Preserve the unexpected reply, grade the run FAIL, and mark every subsequent turn SKIPPED |
+| Missing/empty reply or transport/protocol failure | Grade the run ERROR; the gate is unevaluated and subsequent turns are SKIPPED |
+| Dry-run or a skipped turn | Gate is unevaluated; its scripted message is unsent |
+| No `advance_when` | Continue the fixed script after behavioral deviations; transport/protocol failures still stop the run |
+
+For persisted fields and capture provenance, use [gate evidence](ARCHITECTURE.md#gate-evidence).
+Before treating a gate change as verified, satisfy [advancement verification](#advancement-verification).
 
 ## GM-CONTINUITY-001 rubric
 
@@ -183,6 +191,59 @@ Grouping `[time_period, store]` permits either order within that selection step.
   guidance. The restriction is configured for this question, not for future scenarios
   where age-based routing is necessary.
 
+## GM-PORTAL-STATUS-FULL-001 rubric
+
+The [five-turn scenario](../uc4_runner/scenarios/GM-PORTAL-STATUS-FULL-001.yaml)
+uses the POC business instructions **GRABMART PORTAL — COMPENSATION STATUS** and
+**ONE-BY-ONE SEGMENTATION**. The merchant has already supplied GrabMart, Portal
+sign-in, and one-by-one pacing; later messages acknowledge only the gated action.
+
+| Turn | Required current reply | Advancement |
+|---|---|---|
+| 1 | Instruct opening Finance | Gate before acknowledging Finance |
+| 2 | Instruct opening Transactions | Gate before acknowledging Transactions |
+| 3 | Instruct selecting a time period covering the order date and the applicable store | Gate before acknowledging both filters |
+| 4 | Under Category, instruct selecting Compensation for cancelled orders | Gate before acknowledging Category |
+| 5 | Ask whether the cancelled order appears there as compensated | Final grading; no further merchant message |
+
+Required steps must be instructions, not bare labels or common negated directions.
+Period/store selection may share a verb or use separate verbs in either order.
+Both filters and explicit order-date coverage are required. Known later-step
+labels/actions and premature status questions fail pacing; repeating completed
+navigation actions also fails. In particular, **period/store plus Category** and
+**Category plus status observation** fail even when their individual content is
+correct. Each reply ends at its current action/observation, waiting for the next
+merchant input; a literal “wait” sentence is not required.
+
+Each of the first four gates selects the required step, `one-step-only`,
+`no-app-substitution`, and `no-submission-navigation`. A failure suppresses **all**
+remaining merchant messages with zero attempts and preserved stopping evidence.
+The final reply must request an observation, rather than assert that compensation
+has occurred or ask only about eligibility/order visibility. It must not repeat
+navigation or add submission guidance.
+
+**Observed notice / separate human policy review:**
+
+> Please note that compensation will be partial, based on the assessment of the perishable items.
+
+The POC instructions place this once before the first navigation action. This
+scenario retains actual emitted wording and records
+`partial-compensation-policy-review` as a non-blocking conversation-quality warning
+when “compensation will be partial” (or the configured equivalent) occurs. The
+review question is whether that certainty is justified before eligibility or an
+award is established. This warning records observed behavior, not a newly approved
+policy or a requirement to emit the notice. Absence does not fail the run; its
+once-only placement is not a new hard gate. With otherwise correct replies, the
+notice yields `PASS_WITH_WARNINGS` and appears in the summary and transcripts.
+
+These are deterministic English checks, not a browser or semantic model. Novel
+paraphrases and harmless references to future labels may need manual review.
+The [mocked tests](../tests/test_portal_status_full.py) exercise actual request
+suppression, wording variants, final grading, warning reports, transport errors,
+mixed five-run isolation, dry-run planning, and same-path regrading.
+Use the [operator commands](../README.md#complete-portal-status-journey) for offline
+preparation and future authorized live repetitions.
+
 ## Outcomes and report interpretation
 
 | Run outcome | Meaning |
@@ -196,16 +257,14 @@ ERROR has precedence over FAIL. Earlier behavioral failures in an ERROR run are
 still recorded. Assertion-level results are PASS / FAIL / WARN / SKIP, with a turn
 and reason. Planned/skipped turns and dry-run runs have `outcome: null`.
 
-Read `summary.md` first: transport reliability and behavioral pass rate
-have separate denominators. An all-ERROR batch has null behavioral pass rate, not
-0% or 100%. `aggregate.json.metrics.behavior.endToEndPassRate` measures passes across
-all executed repetitions. Strict passes exclude warnings; the usual behavioral
-pass rate includes them. Recurring defects report occurrences and affected runs.
-Gate-stopped FAILs stay in the behavioral denominator even though later turns were
-skipped. For the exact counters, use [reliability denominators](ARCHITECTURE.md#evidence-and-reliability).
+Read `summary.md` first for per-run outcomes and recurring defects. For rate
+denominators, null rates, and gate-stop counts, use
+[evidence and reliability](ARCHITECTURE.md#evidence-and-reliability).
 
-Use a per-run transcript to see user-facing conversation only. Use per-run JSON
-for assertions, HTTP status, request duration, IDs, and optional raw response.
+Read per-run Markdown for the conversation and assertion explanations. Check each
+turn's execution status: PLANNED/SKIPPED merchant text is a scripted message that
+was never sent. Use per-run JSON for structured assertions, gate results, HTTP status,
+request duration, IDs, and optional raw response.
 Follow trace IDs into your existing Cognigy investigation workflow. Reported
 durations measure the request/response handling, excluding configured sleep delays.
 
@@ -241,9 +300,12 @@ durations measure the request/response handling, excluding configured sleep dela
 3. **Review grades and integrity.** Read `summary.md`, then check every entry in
    `comparison.json`'s `runs[].assertionChanges` against the saved reply, merchant
    context, and selected rule. Include added/removed assertions and warnings in runs
-   whose overall outcome stayed the same. Confirm historical transport metrics agree
-   and recompute the source file inventory: file names and hashes must match the
-   baseline. Completion requires every grade change to be explained by the rubric
+   whose overall outcome stayed the same. For gated runs, also compare current gate
+   evaluations with the source using [gate evidence](ARCHITECTURE.md#gate-evidence);
+   review gate-reference or reason changes even when `assertionChanges` is empty.
+   Confirm historical transport metrics agree and recompute the source file
+   inventory: file names and hashes must match the baseline. Completion requires
+   every grade change to be explained by the rubric
    or recorded for follow-up with its run, turn, and assertion ID.
 
 Report the new directory, checks performed, and unresolved grade discrepancies.
@@ -263,11 +325,25 @@ Tests exercise protocol errors, semantic deviations, five-run isolation, bounded
 concurrency/turn order, auth headers, normalization, raw retention/redaction, metrics,
 CLI behavior, and validation. Keep behavior examples meaningful: add positive and
 negative wording for a rubric change rather than testing implementation internals.
-`tests/test_advancement.py` covers guarded requests, mixed isolated runs, report
-counts, and regrades that preserve or conflict with the captured progression path.
 
 For future Git regression work, commit scenario definitions and code, bump scenario
 versions for changed expectations, and compare scenario hashes and runner versions.
 Use external CI secrets and explicitly reviewed live-run authorization when CI is
 introduced. Do not commit `.env`, raw evidence, or report directories. No workflow,
-cron entry, task scheduler job, or unattended test execution is installed in v0.1.
+cron entry, task scheduler job, or unattended test execution is installed.
+
+### Advancement verification
+
+When changing a gate's assertions, references, execution, or reports, start with
+the mocked examples in [test_advancement.py](../tests/test_advancement.py). Gate
+assertion changes also affect progression, so verify the sent script, not just the
+final grade. Completion requires passing evidence for every affected boundary:
+
+| Boundary | Completion evidence |
+|---|---|
+| Authoring | Scenario validation accepts eligible references and rejects ineligible ones; changed expectations have a new version |
+| Request sequence | Passing gates send the exact next scripted message; failing gates send no later messages; unselected failures/warnings and ungated failures still continue |
+| Capture and reports | Unexpected replies, failing assertion IDs/reasons, and unsent turns are visible; skipped turns have zero attempts and empty replies; per-run evidence agrees with aggregate counts |
+| Unevaluated gates | Missing/empty replies and transport failures remain ERRORs; dry-runs send zero requests and keep null outcomes |
+| Isolation and aggregation | A mixed five-run mocked batch has independent identities and the expected behavioral/transport denominators, with each failed assertion counted once |
+| Regrading | Same-path regrades preserve captured turns and stop metadata; changed paths fail before output creation, per the [input contract](ARCHITECTURE.md#regrade-input-contract) |

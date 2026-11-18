@@ -1,0 +1,42 @@
+# KB articles: UC4-MY-GF-STATUS-001, UC4-MY-GF-TIMING-001
+schema_version: 1
+id: KB-GF-STATUS-001
+version: "0.1.1"
+description: GrabFood App status route followed by approval versus bank-receipt interpretation.
+product: GrabFood
+country: MY
+concepts:
+  orders: ['\b(?:open|tap|click|select|choose|go\s+(?:to|into))\b[^.!?\n;,]{0,35}\borders\b']
+  cancelled: ['\b(?:open|tap|click|select|choose|go\s+(?:to|into))\b[^.!?\n;,]{0,35}\bcancell?ed\b']
+  status:
+    - '\b(?:what|which)\b[^.!?\n]{0,50}\b(?:compensation\s+)?status\b[^.!?\n]*\?'
+    - '\b(?:tell|let)\s+me\b[^.!?\n]{0,70}\b(?:compensation\s+status|status\s+(?:is\s+)?(?:shown|displayed))\b'
+  wrong_route: ['\b(?:finance|transactions|compensation\s+for\s+cancell?ed\s+orders)\b']
+  submission: ['\b(?:request\s+for\s+compensation|report\s+a\s+payment\s+dispute)\b']
+  bank: ['\bbank\b']
+  distinction: ['\b(?:not|doesn\x27t|cannot|can\x27t|separate|different)\b']
+  receipt_claim:
+    - '\b(?:your|the)\s+bank\s+(?:has\s+(?:already\s+)?)?received\s+(?:the\s+)?(?:payment|money|compensation)\b'
+    - '\bapproved\s+(?:status\s+)?(?:means|proves|guarantees)\b[^.!?\n]{0,60}\bbank\b'
+concept_exclusions:
+  orders: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  cancelled: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  status: ['\b(?:do\s+not|don\x27t|never)\b[^.!?\n;]*']
+  receipt_claim:
+    - '\b(?:not|does\s+not|doesn\x27t|cannot|can\x27t)\b[^.!?\n;]*'
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep the GrabFood conversation identity.}
+turns:
+  - id: locate-status
+    merchant: "I'm a GrabFood merchant in Malaysia checking an order cancelled 14 days ago. I'm signed into the GrabMerchant app. Please guide me to its compensation status all at once. No loudspeaker is needed."
+    advance_when: [app-route, read-status, no-mart-route, wait-before-submission]
+    assertions:
+      - {id: app-route, type: ordered, steps: [orders, cancelled], reason: Use the App Orders then Cancelled route.}
+      - {id: read-status, type: required, concepts: [status], reason: Ask the merchant to observe the displayed compensation status.}
+      - {id: no-mart-route, type: forbidden, concepts: [wrong_route], reason: The Finance and Transactions status route is for GrabMart.}
+      - {id: wait-before-submission, type: forbidden, concepts: [submission], reason: End this status segment at the observation rather than starting submission.}
+  - id: interpret-approved
+    merchant: "The order is visible and shows Approved. Does that prove the compensation has reached my bank?"
+    assertions:
+      - {id: distinguish-bank-receipt, type: required, concepts: [bank, distinction], reason: Explain that approval is not proof of bank receipt.}
+      - {id: no-inferred-payment, type: forbidden, concepts: [receipt_claim], reason: Do not infer a completed bank payment from Approved status.}

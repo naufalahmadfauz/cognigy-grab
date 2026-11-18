@@ -1,0 +1,172 @@
+# DRAFT BINDING / NOT REVIEWED FOR EXECUTION. No Endpoint authorization.
+# P2-JOURNEYS-0.4: JRN-TC-027 M01/M03-M09; OD-003 and qualified Q3/Q7/Q9-Q13.
+# App-selected -> explicit computer-Portal readiness -> visible blank status -> request.
+# Period/store share one action; Category and status observation remain separate.
+# Manual review: GM notice once before applicable navigation, including cross-reply order.
+# CT06 literal/award certainty is NOT adopted by this semantic screening fixture.
+# Binding/evidence: docs/problem2/PILOT_EXECUTION_PREPARATION.md. No clock injection.
+schema_version: 1
+id: P2-TC-027-001
+version: "0.1.0"
+description: Draft original GM upfront dual goal with App-to-computer-Portal transition, blank status, Portal review-request submission, qualified no-photo control and explicit finish.
+product: GrabMart
+country: MY
+concepts:
+  computer_portal: ['\b(?:grabmerchant\s+)?portal\b[^.!?\n;]{0,50}\bcomputer\b', '\bcomputer\b[^.!?\n;]{0,50}\b(?:grabmerchant\s+)?portal\b']
+  status_purpose: ['\b(?:check|view|see|find)\b[^.!?\n;]{0,45}\bcompensation\s+status\b']
+  readiness_question: ['\b(?:can|are)\s+you\b[^.!?\n]{0,65}\b(?:access|open|ready|signed\s+in)\b[^.!?\n]{0,65}\b(?:portal|computer)\b[^.!?\n]*\?', '\b(?:let\s+me\s+know|tell\s+me|confirm)\s+(?:when|once)\b[^.!?\n]{0,70}\b(?:portal|signed\s+in|ready)\b']
+  finance: ['\b(?:open|select|choose|click(?:\s+on)?|tap(?:\s+on)?|go\s+to|navigate\s+to)\s+(?:the\s+)?finance\b']
+  transactions: ['\b(?:open|select|choose|click(?:\s+on)?|tap(?:\s+on)?|go\s+to|navigate\s+to)\s+(?:the\s+)?transactions?\b']
+  period: ['\b(?:select|choose|pick|set|adjust)\s+(?:the\s+|a\s+|your\s+)?(?:(?:appropriate|applicable|relevant)\s+)?(?:time|date)\s+(?:period|range)\b', '\b(?:select|choose|pick|set)\s+(?:the\s+|your\s+)?(?:(?:applicable|correct|relevant)\s+)?store\s+and\s+(?:the\s+|a\s+|your\s+)?(?:time|date)\s+(?:period|range)\b']
+  date_coverage: ['\b(?:time|date)\s+(?:period|range)\b[^.!?\n;]{0,65}\b(?:covers?|covering|includes?|including)\s+(?:(?:the|your|that)\s+)?(?:cancelled\s+)?order(?:\x27s)?\s+date\b', '\b(?:time|date)\s+(?:period|range)\b[^.!?\n;]{0,65}\b(?:covers?|covering|includes?|including)\s+(?:the\s+)?(?:cancellation\s+date|date\s+(?:the|your)\s+order\s+was\s+cancelled)\b']
+  store: ['\b(?:select|choose|pick|set)\s+(?:the\s+|your\s+)?(?:(?:applicable|correct|relevant|appropriate)\s+)?store\b', '\b(?:select|choose|pick|set)\s+(?:the\s+|a\s+|your\s+)?(?:time|date)\s+(?:period|range)\b[^.!?\n;]{0,110}\band\s+(?:the\s+|your\s+)?(?:(?:applicable|correct|relevant|appropriate)\s+)?store\b']
+  category: ['\bcategory\b']
+  category_choice: ['\b(?:select|choose|pick|click(?:\s+on)?|tap(?:\s+on)?)\s+(?:the\s+)?["\x27]?compensation\s+for\s+cancelled\s+orders\b']
+  order_question: ['\b(?:can|do)\s+you\s+see\b[^.!?\n]{0,65}\b(?:relevant|cancelled|your|the)\s+order\b[^.!?\n]*\?', '\b(?:is|does)\s+(?:the|your)\s+(?:cancelled\s+)?order\b[^.!?\n]{0,50}\b(?:visible|appear|listed|show)\w*\b[^.!?\n]*\?']
+  status_question: ['\b(?:what|which)\s+(?:compensation\s+)?status\b[^.!?\n]*\?', '\b(?:tell\s+me|read\s+out)\b[^.!?\n]{0,65}\bcompensation\s+status\b', '\b(?:does|is)\s+(?:the|your)\s+(?:cancelled\s+)?order\b[^.!?\n]{0,55}\b(?:appear|show|listed|marked|displayed)\w*\s+(?:there\s+)?(?:as\s+)?compensated\b[^.!?\n]*\?']
+  help: ['\b(?:open|select|choose|click(?:\s+on)?|go\s+to)\s+(?:the\s+)?help\s+cent(?:re|er)\b']
+  search_bar: ['\bsearch\s+(?:bar|box|field)\b']
+  query: ['\b(?:search(?:\s+for)?|type|enter)\s+["\x27]?dispute\b']
+  article: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?report\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\s+(?:down|through|to)\b']
+  form_question: ['\b(?:can|do)\s+you\s+see\s+(?:the\s+)?(?:(?:request|compensation)\s+)?form\b[^.!?\n]*\?', '\bis\s+(?:the\s+)?(?:(?:request|compensation)\s+)?form\b[^.!?\n]{0,35}\b(?:visible|displayed)\b[^.!?\n]*\?']
+  details: ['\b(?:enter|provide|complete|fill\s+in)\s+(?:the\s+|your\s+)?order\s+(?:details|information)\b']
+  packed_photo: ['\b(?:attach|upload|provide|add|keep)\b[^.!?\n;]{0,50}\b(?:photo|picture)\b[^.!?\n;]{0,35}\bpacked\s+items\b']
+  wrong_photo: ['\b(?:photo|picture)\b[^.!?\n;]{0,35}\bprepared\s+food\b']
+  no_photo_continue: ['\b(?:continue|proceed|submit)\b[^.!?\n;]{0,45}\bwithout\b[^.!?\n;]{0,25}\bphoto\b']
+  supporting_info: ['\b(?:add|provide|include|enter)\b[^.!?\n;]{0,45}\b(?:available|supporting)\s+(?:information|details|evidence)\b']
+  submit: ['\b(?:submit|send)\s+(?:the\s+|your\s+|completed\s+)?(?:form|request)\b']
+  submission_question: ['\b(?:let\s+me\s+know|tell\s+me|confirm)\b[^.!?\n;]{0,55}\b(?:submitted|sent)\b', '\b(?:have|did)\s+you\b[^.!?\n]{0,40}\bsubmit\w*\b[^.!?\n]*\?']
+  acknowledgement: ['\b(?:thank\s+you|thanks|noted)\b']
+  further_help: ['\b(?:anything|something)\s+else\b[^.!?\n]*\?', '\b(?:do\s+you\s+need|can\s+i\s+offer)\s+(?:any\s+)?(?:further|more|other)\s+(?:help|assistance)\b[^.!?\n]*\?']
+  goodbye: ['\b(?:goodbye|thank\s+you\s+for\s+calling|have\s+a\s+(?:nice|good)\s+day)\b']
+  handoff: ['\b(?:connect|transfer)\s+you\b', '\b(?:i\s+will|i\x27ll|let\s+me)\s+(?:connect|transfer)\b', '\b(?:would|do)\s+you\s+(?:like|want)\b[^.!?\n]{0,55}\b(?:speak|talk)\b[^.!?\n]{0,35}\b(?:person|agent|support)\b']
+  agent_submission: ['\bi\s+(?:have\s+|already\s+|will\s+)?submitted\b', '\bi\x27ve\s+(?:already\s+)?submitted\b', '\bi\s+will\s+submit\b']
+  award_guarantee: ['\b(?:guaranteed|definitely)\b[^.!?\n;]{0,50}\b(?:approved|paid|compensated|accepted)\b', '\byour\s+(?:order|request|compensation)\s+(?:is|will\s+be)\s+(?:approved|paid|guaranteed)\b']
+  wrong_route: ['\b(?:open|use|go\s+to)\s+(?:the\s+)?(?:grabmerchant\s+)?app\b', '\b(?:open|select|tap|choose)\s+(?:the\s+)?(?:orders|cancelled|history|date\s+selector|request\s+for\s+compensation|common\s+problems|browse\s+by\s+services)\b']
+  timeline: ['\b(?:one\s+to\s+two|1\s*-\s*2|three\s+to\s+five|3\s*-\s*5)\s+(?:business|working)\s+days\b']
+  notice_certainty: ['\bcompensation\s+(?:will\s+be|is\s+going\s+to\s+be)\s+partial\b']
+concept_exclusions:
+  finance: &not_action ['\b(?:do\s+not|don\x27t|never)\s+(?:open|tap|select|choose|pick|set|adjust|go|navigate|click|scroll|enter|type|search|provide|complete|fill|attach|upload|add|keep|include|submit|send|use)\b[^.!?\n,;]*']
+  transactions: *not_action
+  period: *not_action
+  store: *not_action
+  date_coverage: ['\b(?:not|never|without)\s+(?:cover\w*|includ\w*)\b[^.!?\n,;]*']
+  category_choice: *not_action
+  help: *not_action
+  query: *not_action
+  article: *not_action
+  scroll: *not_action
+  details: *not_action
+  packed_photo: *not_action
+  supporting_info: *not_action
+  submit: *not_action
+  no_photo_continue: ['\b(?:cannot|can\x27t|do\s+not|don\x27t|never)\s+(?:continue|proceed|submit)\b[^.!?\n,;]*']
+  handoff: ['\b(?:will\s+not|won\x27t|cannot|can\x27t|do\s+not|don\x27t)\s+(?:connect|transfer)\b[^.!?\n,;]*']
+  award_guarantee: ['\b(?:not|never)\s+guaranteed\b[^.!?\n,;]*']
+  wrong_route: *not_action
+assertions:
+  - {id: identity, type: session_continuity, reason: Preserve the current order and conversation through the platform transition.}
+  - {id: no-handoff, type: forbidden, concepts: [handoff], reason: This available-Portal and initially visible-form target has no transfer trigger.}
+  - {id: no-agent-submission, type: forbidden, concepts: [agent_submission], reason: Submission remains merchant-owned.}
+  - {id: no-guarantee, type: forbidden, concepts: [award_guarantee], reason: Blank status and a review request do not establish approval or payment.}
+  - {id: portal-target, type: forbidden, concepts: [wrong_route], reason: Preserve the computer-Portal target and Search Bar route; no GF recovery or invented Portal request link.}
+  - {id: packed-evidence, type: forbidden, concepts: [wrong_photo], reason: Use packed-items evidence for this GM fixture.}
+  - {id: notice-certainty-review, type: forbidden, severity: warning, concepts: [notice_certainty], reason: Preserve the unresolved CT06 certainty wording for manual review; this warning is not an award oracle or a progression gate.}
+turns:
+  - id: app-selected-dual-entry
+    merchant: "I'm a GrabMart merchant in Malaysia. My order was cancelled 14 days ago. Help me check its compensation status and submit a request for review if still needed. I have selected the GrabMerchant app and I'm on its home screen. Guide me one step at a time; no loudspeaker."
+    advance_when: [transition, wait-for-readiness, direct-entry, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: transition, type: required, concepts: [computer_portal, status_purpose, readiness_question], reason: M01/M03 explain computer-Portal status and request readiness before supplying Portal controls; pending submission remains in scope.}
+      - {id: wait-for-readiness, type: forbidden, concepts: [finance, transactions, period, store, category_choice, status_question, help, query, article, scroll, details, submit, goodbye], reason: Wait for computer-Portal access/current-location confirmation.}
+      - {id: direct-entry, type: forbidden, concepts: [timeline], reason: M02 has no education trigger for the upfront dual goal.}
+  - id: computer-portal-ready
+    merchant: "I can use a computer. I'm now signed into the GrabMerchant Portal home page with authorized Owner access for this store. Please continue one step at a time; I still want the review request after the status check if needed."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [finance], reason: M03 readiness now observed; M04 starts with Finance.}
+      - {id: one-action, type: forbidden, concepts: [transactions, period, store, category_choice, order_question, status_question, help, query, article, scroll, details, submit, goodbye], reason: Wait for Finance; manual review also checks notice delivered once before navigation.}
+  - id: finance-open
+    merchant: "Finance is open. What is the next step?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [transactions], reason: M04 open Transactions after Finance.}
+      - {id: one-action, type: forbidden, concepts: [finance, period, store, category_choice, order_question, status_question, help, query, article, scroll, details, submit, goodbye], reason: Wait before selecting period/store.}
+  - id: transactions-open
+    merchant: "Transactions is open."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [period, date_coverage, store], reason: M04 select the relevant period covering the order date and applicable store together.}
+      - {id: one-action, type: forbidden, concepts: [finance, transactions, category_choice, order_question, status_question, help, query, article, scroll, details, submit, goodbye], reason: Period/store is one action; Category remains the next action.}
+  - id: period-store-selected
+    merchant: "The time period covers the order date and the applicable store is selected. What is next?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [category, category_choice], reason: M04 under Category select Compensation for cancelled orders.}
+      - {id: one-action, type: forbidden, concepts: [finance, transactions, period, store, order_question, status_question, help, query, article, scroll, details, submit, goodbye], reason: Wait for Category selection before asking for the actual result.}
+  - id: category-selected
+    merchant: "Compensation for cancelled orders is selected under Category."
+    advance_when: [next-step, observation-only, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [status_question], reason: M05 ask for the actual compensation result; visibility alone is not a status observation.}
+      - {id: observation-only, type: forbidden, concepts: [finance, transactions, period, store, category_choice, help, query, article, scroll, details, submit, goodbye], reason: Wait for the merchant result before request-entry navigation.}
+  - id: visible-blank-status
+    merchant: "The relevant cancelled order is visible, but no compensation status is displayed; it is blank. I still want to submit a request for review."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [help], reason: M06/M07 retain submission intent and established Portal location after explicit visible-blank status.}
+      - {id: one-action, type: forbidden, concepts: [finance, transactions, period, store, category_choice, query, article, scroll, form_question, details, submit, goodbye], reason: Open Help Centre and wait before Search Bar.}
+  - id: help-centre-open
+    merchant: "Help Centre is open."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [search_bar, query], reason: M07 use the Search Bar and the dispute query.}
+      - {id: one-action, type: forbidden, concepts: [help, article, scroll, form_question, details, submit, goodbye], reason: Wait for search results before opening the article.}
+  - id: dispute-search-completed
+    merchant: "I searched for dispute in the Search Bar. Report a payment dispute appears in the results."
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [article], reason: M07 open the identified article after the search result.}
+      - {id: one-action, type: forbidden, concepts: [help, query, scroll, form_question, details, submit, goodbye], reason: Article opening does not establish scroll or form visibility.}
+  - id: article-opened
+    merchant: "Report a payment dispute is open."
+    advance_when: [next-step, wait-for-form, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [scroll, form_question], reason: M07 scroll and request the form-visibility observation.}
+      - {id: wait-for-form, type: forbidden, concepts: [help, query, article, details, packed_photo, supporting_info, submit, goodbye], reason: Wait for visible form before completion or evidence guidance.}
+  - id: form-visible
+    merchant: "I scrolled down and the request form is visible. What should I enter first?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [details], reason: M08 start completion after form visibility and independently supplied authorized access.}
+      - {id: one-action, type: forbidden, concepts: [help, article, scroll, packed_photo, supporting_info, submit, goodbye], reason: Wait for details completion before evidence guidance.}
+  - id: details-entered
+    merchant: "I entered the order details. What evidence should I provide?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target, packed-evidence]
+    assertions:
+      - {id: next-step, type: required, concepts: [packed_photo], reason: M08 retain the packed-items evidence recommendation without presuming availability or packing.}
+      - {id: one-action, type: forbidden, concepts: [help, article, scroll, details, submit, goodbye], reason: Wait for evidence availability before advancing.}
+  - id: no-photo
+    merchant: "I don't have a photo of the packed items. I do have the order details and supporting information. How can I continue?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target, packed-evidence]
+    assertions:
+      - {id: next-step, type: required, concepts: [no_photo_continue, supporting_info], reason: M08/Q7 qualified continuation with available information; no invented substitute or promise of sufficiency. Manual review covers qualifications.}
+      - {id: one-action, type: forbidden, concepts: [help, article, scroll, packed_photo, submit, goodbye], reason: Wait for information completion rather than force the unavailable photo or submit early.}
+  - id: information-entered
+    merchant: "I added the available supporting information. What is the next step?"
+    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [submit, submission_question], reason: "M08 request merchant self-submission and its result, not Agent submission or backend acceptance."}
+      - {id: one-action, type: forbidden, concepts: [help, article, scroll, details, packed_photo, supporting_info, goodbye], reason: Wait for the submission report.}
+  - id: submission-reported
+    merchant: "I submitted the request."
+    advance_when: [next-step, no-false-finish, no-handoff, no-agent-submission, no-guarantee, portal-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [acknowledgement, further_help], reason: M09 acknowledge the report without inferring payment resolution; obtain a separate finish signal.}
+      - {id: no-false-finish, type: forbidden, concepts: [submit, goodbye], reason: Submission report is not permission to close or submit again.}
+  - id: explicit-finish
+    merchant: "No, I don't need any further help. Thank you."
+    assertions:
+      - {id: closing-text, type: required, concepts: [goodbye], reason: M09 screen ordinary closing text; Flow ownership and terminal execution need external evidence.}
+      - {id: no-restart, type: forbidden, concepts: [finance, help, query, article, scroll, details, submit, further_help], reason: Respect explicit finish.}

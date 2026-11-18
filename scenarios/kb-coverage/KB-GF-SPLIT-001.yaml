@@ -1,0 +1,24 @@
+# KB articles: UC4-MY-GF-SPLIT-001
+schema_version: 1
+id: KB-GF-SPLIT-001
+version: "0.1.0"
+description: Eligible GrabFood split-order automatic reimbursement and weekly record updates without generalisation.
+product: GrabFood
+country: MY
+concepts:
+  eligible: ['\b(?:eligible|qualif\w*|subject\s+to)\b']
+  automatic: ['\bautomatic\w*\b']
+  no_action: ['\bno\s+(?:merchant\s+|further\s+)?action\b', '\b(?:do\s+not|don\x27t)\s+need\s+to\b', '\bwithout\s+(?:any\s+)?(?:merchant\s+)?action\b']
+  app: ['\bgrab\s*merchant\s+app\b']
+  weekly: ['\bweekly\b', '\b(?:once|every)\s+(?:a\s+)?week\b']
+  all_orders: ['\b(?:all|every)\s+cancell?ed\b[^.!?\n]{0,65}\b(?:automatic\w*|guaranteed)\b', '\bautomatic\w*\b[^.!?\n]{0,65}\b(?:all|every)\s+cancell?ed\s+orders?\b']
+  fixed_receipt: ['\b(?:bank\s+(?:receipt|credit)|payment)\s+(?:is\s+)?guaranteed\b']
+concept_exclusions:
+  all_orders: ['\b(?:not|never|does\s+not|doesn\x27t)\b[^.!?\n;]*']
+  fixed_receipt: ['\b(?:not|no|cannot|can\x27t)\b[^.!?\n;]*']
+turns:
+  - id: eligible-split
+    merchant: "I'm a GrabFood merchant in Malaysia with a split large order cancelled 14 days ago. If its cancellation is eligible, do I need to claim compensation, how often is the App record updated, and does that apply to every cancelled order?"
+    assertions:
+      - {id: conditional-automatic-route, type: required, concepts: [eligible, automatic, no_action, app, weekly], reason: Eligible split cancellations are reimbursed automatically with no merchant action and weekly App-record updates.}
+      - {id: no-generalisation, type: forbidden, concepts: [all_orders, fixed_receipt], reason: The eligible split-order rule establishes neither universal reimbursement nor a bank-credit date.}

@@ -1,0 +1,55 @@
+{
+  "status": "PROPOSED_NOT_APPLIED",
+  "basis": "Hypothesis-driven candidate against the supplied verified October 29 baseline; October 30 deployed configuration and internal execution traces are unavailable.",
+  "evidenceArchive": "../UC4_KB_v03_Codex_Diagnosis_Evidence_2026-10-30.zip",
+  "evidenceArchiveSha256": "503f2c5e15327049856b5faa1ca9b50cc20f1761a1f15b2dccce27a5e9c819c7",
+  "baselineMember": "reference_baseline/Package-Naufal_2026-10-29_13-33-26.zip",
+  "baselineArchiveSha256": "188a11e864890da92909310d1c91eb2d1006107191bf1d5e6dcad4f1a8d0f5f3",
+  "targetFlowName": "UC4_KB_AGENT_POC_v03",
+  "targetFlowReferenceId": "17f129de-69b3-4828-bc4f-0c7d19ef41ce",
+  "targetNodeReferenceId": "e38e5029-d515-4002-ad03-dd99b0eb821e",
+  "baselineNodeMember": "nodeData/6ae34b2cb869e882e5729714",
+  "field": "/localizedData/0/config/instructions",
+  "beforeFieldSha256Utf8": "f922e2ecc1b2ecae14be9ce6ca5ebca078ad8c1c8b52d137c1dad84c25709381",
+  "candidateFieldSha256Utf8": "7b10b4f90886b99f84c1716270821a2ccd67264cc9a0b169b3d2a289546d3814",
+  "normalization": "Convert CRLF/CR to LF, then use exactly one final LF; no other whitespace normalization.",
+  "beforeNormalizedSha256": "9136fd79342f9053b545a64619d666f29ffd0fa95f6f75e02a875fca9e5ac535",
+  "candidateNormalizedSha256": "b4c455044a8f5abd7a6d8d0fae000ae8353ff5c30fefd605c9776130a50ee136",
+  "changesDiffSha256": "41808c318ebcb9bf48802eb84e14b68851bcef4d6a6ed726ebe3481d86cc2099",
+  "insertions": [
+    {
+      "file": "01-explicit-lob.txt",
+      "appendToSection": "MERCHANT CONTEXT",
+      "beforeHeading": "CURRENT ORDER LOB CORRECTION",
+      "sha256": "c129d6102df0badb03baf7cc277deb6c641f595852caa05edaa3c0cbecd00908"
+    },
+    {
+      "file": "02-provisional-evidence.txt",
+      "appendToSection": "KNOWLEDGE",
+      "beforeHeading": "SPEECH UNDERSTANDING",
+      "sha256": "4ab4c3b04cc70e1e4da98e122f3254c17dc2ac497655ce8b82fbc1cc5c748af5"
+    },
+    {
+      "file": "03-form-visibility.txt",
+      "appendToSection": "REQUEST FOR COMPENSATION — GRABMERCHANT APP",
+      "beforeHeading": "PORTAL SUBMISSION — SEARCH BAR ROUTE",
+      "sha256": "d84efd43ad04ccebc170fd244a344531f6d5ed74d2bffcf0dd8b02bbbefe5b5b"
+    }
+  ],
+  "candidateScope": {
+    "changedNodes": 1,
+    "changedConfigurationFields": 1,
+    "insertedParagraphs": 3,
+    "removedOriginalCharacters": 0,
+    "addedCharactersUsingBaselineLineEndings": 1921,
+    "codeChanges": 0,
+    "toolDefinitionChanges": 0,
+    "knowledgeContentChanges": 0,
+    "sharedResourceChanges": 0,
+    "mainChanges": 0
+  },
+  "verificationCoverage": "Offline baseline-to-candidate comparison only. The 13:33 package contains 31 POC nodes and 39 shared Agent/Store/source/chunk entries; MAIN and Endpoint/Snapshot definitions are absent.",
+  "applicationVerified": false,
+  "liveRootCauseVerified": false,
+  "liveCorrectionRequests": 0
+}

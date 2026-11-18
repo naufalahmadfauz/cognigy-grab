@@ -1,0 +1,44 @@
+# KB articles: UC4-MY-GF-SUBMIT-001, UC4-MY-SHARED-PORTAL-001, UC4-MY-SHARED-REQUEST-001
+schema_version: 1
+id: KB-GF-MISSING-LINK-001
+version: "0.1.1"
+description: Missing App request link permits a consented Portal fallback without inferring ineligibility.
+product: GrabFood
+country: MY
+concepts:
+  portal: ['\b(?:grab\s*merchant\s+)?portal\b']
+  offer:
+    - '\b(?:would|can|shall|do)\s+(?:you|we)\b[^.!?\n]{0,110}\b(?:portal|switch)\b[^.!?\n]*\?'
+    - '\b(?:switch|continue|proceed|use)\b[^.!?\n]{0,50}\bportal\b[^.!?\n]*\?'
+  help: ['\b(?:open|click|select|choose|go\s+(?:to|into))\b[^.!?\n;,]{0,35}\bhelp\s+cent(?:re|er)\b']
+  search: ['\bsearch\s+(?:bar|box|field)\b', '\b(?:search|type)\b[^.!?\n]{0,25}\bdispute\b']
+  query: ['\b(?:search(?:\s+for)?|type|enter)\s+["\x27\u201c]?dispute\b']
+  dispute: ['\breport\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\b']
+  premature: ['\b(?:open|select|choose|click)\b[^.!?\n]{0,30}\bhelp\s+cent(?:re|er)\b', '\b(?:fill|complete|submit)\s+(?:in\s+)?(?:the\s+)?form\b']
+  repeat_link: ['\b(?:tap|click|select|choose)\s+(?:on\s+)?(?:the\s+)?["\x27\u201c]?request\s+for\s+compensation\b']
+  unsupported_inference: ['\byou\s+(?:are|must\s+be)\s+ineligible\b', '\byou\s+(?:are\s+not|aren\x27t)\s+(?:an?\s+)?(?:owner|manager)\b']
+concept_exclusions:
+  help: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  search: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  dispute: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  scroll: ['\b(?:do\s+not|don\x27t|never|cannot|can\x27t)\b[^.!?\n;,]*']
+  repeat_link: ['\b(?:do\s+not|don\x27t|cannot|can\x27t)\b[^.!?\n;]*']
+  unsupported_inference: ['\b(?:not|does\s+not|doesn\x27t|cannot|can\x27t|if)\b[^.!?\n;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep the current request and existing guidance preferences.}
+  - {id: no-unsupported-inference, type: forbidden, concepts: [unsupported_inference], reason: A missing App link establishes neither ineligibility nor an incorrect role.}
+turns:
+  - id: missing-app-link
+    merchant: "I'm a GrabFood merchant in Malaysia with an order cancelled 14 days ago. I'm trying to submit compensation in the GrabMerchant app. The cancelled order details are open, but I can't tap Request for compensation because it isn't there. I want all-at-once guidance and don't need loudspeaker. What can I do?"
+    advance_when: [offer-portal, wait-for-switch, no-repeat-link]
+    assertions:
+      - {id: offer-portal, type: required, concepts: [portal, offer], reason: Offer switching to the supported Portal alternative.}
+      - {id: wait-for-switch, type: forbidden, concepts: [premature], reason: Wait for the merchant to accept the Portal switch before navigation.}
+      - {id: no-repeat-link, type: forbidden, concepts: [repeat_link], reason: Do not retry a link already reported missing.}
+  - id: portal-accepted
+    merchant: "Yes, let's use the Portal. I'm already signed in on my computer. Show me the steps to reach the form together."
+    assertions:
+      - {id: fallback-route, type: ordered, steps: [help, search, dispute, scroll], reason: Use Help Centre Search Bar and Report a payment dispute then scroll for the form.}
+      - {id: search-term, type: required, concepts: [query], reason: Search for dispute to reach the prescribed article.}
+      - {id: no-portal-app-link, type: forbidden, concepts: [repeat_link], reason: Do not invent the App Request for compensation link on the Portal.}

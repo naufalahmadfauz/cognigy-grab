@@ -19,7 +19,7 @@ CLI regrade (regrade.py)
   └─ grade comparison + same report writer → fresh REGRADE directory
 ```
 
-Both scenarios in `uc4_runner/scenarios/` are packaged with the application so
+All scenarios in `uc4_runner/scenarios/` are packaged with the application so
 they also work after a wheel installation, outside the checkout.
 `examples/STATUS-LOCATION-JSON.json` demonstrates the same schema in JSON.
 
@@ -58,15 +58,21 @@ to advance. Final evaluation uses the same function, including skipped assertion
 the transport client and scheduler remain independent of gate policy. For YAML
 syntax and permitted references, use [advancement conditions](TESTING_GUIDELINES.md#advancement-conditions).
 
-Report schema 1.0 gains optional fields for guarded runs:
+### Gate evidence
 
-- `turn.advancement`: referenced `assertionIds`, evaluated `outcome` (PASS/FAIL or
-  null when unevaluated), and `reason`. It reuses assertion results rather than adding
-  a duplicate failing assertion.
-- `run.stoppedByGate`: the captured stopping `turnIndex`, `turnId`, failed
-  `assertionIds`, and `reason`. This is capture metadata, preserved during regrading.
-- `turn.skipReason`: the gate stop responsible for an unsent turn. Skipped turns
-  keep null outcomes/HTTP timings, zero attempts, and no fabricated reply.
+Report schema 1.0 has three optional fields for guarded runs:
+
+| Field | Meaning | During regrading |
+|---|---|---|
+| `turn.advancement` | Selected `assertionIds`, `outcome` (PASS/FAIL or null when unevaluated), and `reason` | Recalculated from the selected scenario |
+| `run.stoppedByGate` | Captured stopping `turnIndex`, `turnId`, failed `assertionIds`, and `reason` | Preserved as the original stop explanation |
+| `turn.skipReason` | The captured gate stop responsible for an unsent turn | Preserved as capture evidence |
+
+A revised assertion may stop at the same turn while producing a different current
+gate explanation. The historical stop fields remain valid in that case, including
+on regrades of regrades. Gate evaluations reuse assertion results, so they do not
+add a duplicate failing assertion. Skipped turns retain null outcomes/HTTP timings,
+zero attempts, and an empty reply.
 
 These fields appear in per-run/aggregate JSON and normalized transcripts; Markdown
 shows gate results and labels unsent merchant messages as scripted. Saved replies
@@ -140,8 +146,8 @@ bodies use `rawBody`; ordinary JSON uses `rawResponse` including `outputStack`.
 - Usable replies: supported nonempty 2xx JSON replies / attempted turns.
 - Runs without transport/protocol ERROR: non-ERROR runs / executed runs
   (`transport.completeRuns` and `completeRunRate`, retaining the existing denominator).
-- Behavioral pass: PASS or PASS_WITH_WARNINGS runs / complete runs.
-- Strict behavioral pass: PASS runs / complete runs.
+- Behavioral pass: PASS or PASS_WITH_WARNINGS runs / non-ERROR executed runs.
+- Strict behavioral pass: PASS runs / non-ERROR executed runs.
 - End-to-end pass: PASS or PASS_WITH_WARNINGS runs / all executed runs.
 
 ERROR runs are excluded from whole-conversation behavioral grading, but any prior
@@ -201,11 +207,10 @@ is itself a regrade. Raw evidence is copied only when currently opted in and ava
 through the [redaction boundary](#redaction-boundary).
 
 Comparison entries list added, removed, or changed assertion outcomes. For changes
-to reasons or evidence with unchanged outcomes, inspect the source and updated
-per-run assertions.
-Gate evaluations are recalculated, while `stoppedByGate` and `skipReason` preserve
-the original capture explanation even if a revised assertion now stops at the same
-turn. This distinction also applies to regrades of regrades.
+to reasons, evidence, or gate references with unchanged assertion outcomes, inspect
+the source and updated per-run results. When reviewing guarded runs, use the
+[gate evidence](#gate-evidence) reference to distinguish current evaluation from
+captured stop metadata.
 For command execution and report review, follow the
 [offline regrade workflow](TESTING_GUIDELINES.md#offline-regrade-workflow).
 

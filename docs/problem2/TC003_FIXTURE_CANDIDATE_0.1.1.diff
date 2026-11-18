@@ -1,0 +1,50 @@
+--- scenarios/problem2-pilots/P2-TC-003-001.yaml
++++ scenarios/problem2-pilots/candidates/tc-003-v0.1.1/P2-TC-003-001.yaml
+@@ -1,20 +1,22 @@
+-# DRAFT BINDING / NOT REVIEWED FOR EXECUTION. No Endpoint authorization.
++# FIXTURE CANDIDATE / NOT APPROVED FOR EXECUTION. New live run needs separate authorization.
+ # P2-JOURNEYS-0.4: JRN-TC-003 M01/M03-M10; OD002-REVIEW-0.2 situation A.
+ # R = OD007-OD010-OD009-REVIEW-0.2: A1/B3/C6; Q7 no-photo control proposed here.
+ # Binding/evidence: docs/problem2/PILOT_EXECUTION_PREPARATION.md. CT literal adoption pending.
+ # Utterance-first, App home, 14-day cancellation age; reference date is external metadata.
+ # Every non-final reply gates the NEXT merchant observation. Regexes screen text only.
++# v0.1.0 and its live evidence stay unchanged; open-order completion now precedes status inquiry.
++# Candidate review: docs/problem2/TC003_FIXTURE_CANDIDATE_0.1.1.md.
+ schema_version: 1
+ id: P2-TC-003-001
+-version: "0.1.0"
+-description: Draft original GF visible-blank status to App review-request submission and explicit finish; one-by-one, initially visible form, qualified no-photo control.
++version: "0.1.1"
++description: Candidate GF visible-blank status to App review-request submission and explicit finish; separate order-opening confirmation and status observation, initially visible form, qualified no-photo control.
+ product: GrabFood
+ country: MY
+ concepts:
+   orders: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?orders\b']
+-  cancelled: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?cancelled\b']
++  cancelled: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?cancelled\b(?!\s+order\b)']
+   order_question: ['\b(?:can|do)\s+you\s+see\b[^.!?\n]{0,65}\b(?:relevant|cancelled|your|the)\s+order\b[^.!?\n]*\?', '\b(?:is|does)\s+(?:the|your)\s+(?:cancelled\s+)?order\b[^.!?\n]{0,50}\b(?:visible|appear|listed|show)\w*\b[^.!?\n]*\?']
+-  open_order: ['\b(?:open|tap|select|choose)\s+(?:the|your|that|this)\s+(?:(?:relevant|cancelled)\s+)?order\b']
++  open_order: ['\b(?:open|tap(?:\s+on)?|click(?:\s+on)?|select|choose)\s+(?:the|your|that|this)\s+(?:relevant\s+)?(?:cancell?ed\s+)?order\b']
+   status_question: ['\b(?:what|which)\s+(?:compensation\s+)?status\b[^.!?\n]*\?', '\b(?:tell\s+me|read\s+out|check\s+and\s+tell\s+me)\b[^.!?\n]{0,65}\bcompensation\s+status\b']
+   request: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?request\s+for\s+compensation\b']
+   article: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?report\s+a\s+payment\s+dispute\b']
+@@ -82,10 +84,16 @@
+     merchant: "I can see that cancelled order in the list."
+     advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+     assertions:
+-      - {id: next-step, type: required, concepts: [open_order, status_question], reason: M05 open the visible order and request its actual compensation-status observation.}
+-      - {id: one-action, type: forbidden, concepts: [orders, cancelled, request, article, scroll, details, submit, early_close], reason: Opening and reporting status is this action; wait for its result before submission.}
++      - {id: next-step, type: required, concepts: [open_order], reason: M05 instruct opening the visible order and wait for completion before asking its compensation status.}
++      - {id: one-action, type: forbidden, concepts: [orders, cancelled, status_question, request, article, scroll, details, submit, early_close], reason: Wait for the merchant to confirm the order is open before the separate status inquiry or submission guidance.}
++  - id: order-opened
++    merchant: "The relevant cancelled order is open and its details are visible."
++    advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
++    assertions:
++      - {id: next-step, type: required, concepts: [status_question], reason: M05 obtain the actual compensation-status observation only after the merchant confirms opening the order.}
++      - {id: one-action, type: forbidden, concepts: [orders, cancelled, order_question, open_order, request, article, scroll, form_question, details, food_photo, supporting_info, submit, early_close], reason: Wait for the reported status before any conditional review-request action; do not repeat completed navigation.}
+   - id: blank-status-link-present
+-    merchant: "The order details are open. No compensation status is displayed; it is blank. I still want to submit a request for review. The Request for compensation link is visible."
++    merchant: "No compensation status is displayed; it is blank. I still want to submit a request for review. The Request for compensation link is visible."
+     advance_when: [next-step, one-action, no-handoff, no-agent-submission, no-guarantee, app-target]
+     assertions:
+       - {id: next-step, type: required, concepts: [request], reason: M06/M07 use explicit blank status and retained intent to open the present App link.}

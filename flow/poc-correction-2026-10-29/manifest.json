@@ -1,0 +1,74 @@
+{
+  "status": "MANUAL_APPLICATION_PENDING",
+  "baselineArchive": "../Package-Naufal_2026-10-29_06-47-07.zip",
+  "baselineArchiveSha256": "015b714019081f458b2d8f28047b68761e47c7fe6e7ddab68670ecb0684be6af",
+  "specification": "../UC4-PORTAL-DIAGNOSIS-2026-10-29.md",
+  "approvedExceptionSha256": "8e50f482fdf530baf0f25e25a14a91ba0d97cc62865420fc04af6a0552e04c2d",
+  "targetFlowName": "UC4_KB_AGENT_POC_v03",
+  "targetFlowReferenceId": "17f129de-69b3-4828-bc4f-0c7d19ef41ce",
+  "deploymentTargetConfirmation": "User manually confirmed Flow reference, correct Snapshot/current-Project selection, and runner destination; no independent administration read performed.",
+  "fields": [
+    {
+      "nodeReferenceId": "e38e5029-d515-4002-ad03-dd99b0eb821e",
+      "label": "Grab Cancelled Order Compensation",
+      "baselineMember": "nodeData/6ae2ebf02f2c7932c4cad8f7",
+      "field": "/localizedData/0/config/instructions",
+      "pasteFile": "01-job-instructions.txt",
+      "beforeSha256": "cebfb6ca586f258605b07722712670e622fbca3ee80208a1bf9c6ac3494bee92",
+      "afterSha256": "9136fd79342f9053b545a64619d666f29ffd0fa95f6f75e02a875fca9e5ac535"
+    },
+    {
+      "nodeReferenceId": "3c8ee6d5-d094-41ec-b4e0-ab73161abbcf",
+      "label": "Code: Proactive greeting once",
+      "baselineMember": "nodeData/6ae2ebf02f2c7932c4cad8f5",
+      "field": "/localizedData/0/config/code",
+      "pasteFile": "02-proactive-greeting.js",
+      "beforeSha256": "70066fd77df4462228cc2ec75e323770121fb195b49c237acda170f629509869",
+      "afterSha256": "cb537dfe186fb0e6651c0df02fd402c9c265249ee1a970fd343c9cdaf437b189"
+    },
+    {
+      "nodeReferenceId": "3c8ee6d5-d094-41ec-b4e0-ab73161abbcf",
+      "label": "Code: Proactive greeting once",
+      "baselineMember": "nodeData/6ae2ebf02f2c7932c4cad8f5",
+      "field": "/localizedData/0/config/transpiled",
+      "generatedByCognigy": true,
+      "beforeSha256": "2cfe729b39253247b5efe078a7fdc4cabbbfe53fb2e505bac1431ae7278c956e",
+      "literalReplacementSha256": "1681898cab7c91329c96c9c83ff4fb0c81587e89374fe187f62165906272b1b1",
+      "note": "Editor regeneration may differ in formatting; inspect it against the approved source code."
+    },
+    {
+      "nodeReferenceId": "d438fa76-736e-4027-b6f4-86fbee9495c1",
+      "label": "Code: Record greeting emission",
+      "baselineMember": "nodeData/6ae2ebf02f2c7932c4cad901",
+      "field": "/localizedData/0/config/code",
+      "pasteFile": "03-record-greeting.js",
+      "beforeSha256": "6a797f7b3cd53ee4e003981a6e2dafbcd925c856f3e6447abcf80d748271ae9a",
+      "afterSha256": "61e7014b37f723bc76ee2bf287bd36e8c981d4577f84727e401d0acd8e6a9cdf"
+    },
+    {
+      "nodeReferenceId": "d438fa76-736e-4027-b6f4-86fbee9495c1",
+      "label": "Code: Record greeting emission",
+      "baselineMember": "nodeData/6ae2ebf02f2c7932c4cad901",
+      "field": "/localizedData/0/config/transpiled",
+      "generatedByCognigy": true,
+      "beforeSha256": "6a797f7b3cd53ee4e003981a6e2dafbcd925c856f3e6447abcf80d748271ae9a",
+      "literalReplacementSha256": "61e7014b37f723bc76ee2bf287bd36e8c981d4577f84727e401d0acd8e6a9cdf",
+      "note": "Editor regeneration may differ in formatting; inspect it against the approved source code."
+    }
+  ],
+  "artifactSha256": {
+    "01-job-instructions.txt": "9136fd79342f9053b545a64619d666f29ffd0fa95f6f75e02a875fca9e5ac535",
+    "02-proactive-greeting.js": "cb537dfe186fb0e6651c0df02fd402c9c265249ee1a970fd343c9cdaf437b189",
+    "03-record-greeting.js": "61e7014b37f723bc76ee2bf287bd36e8c981d4577f84727e401d0acd8e6a9cdf",
+    "changes.diff": "3b9e2bcef6631a487ef524907329fa95f0dd3c7b43612bc4ad4d95b823c6cae0"
+  },
+  "staticCandidateScope": {
+    "nodes": 3,
+    "pasteFields": 3,
+    "exportFieldsIncludingCompilerOutput": 5,
+    "otherResourceValueChanges": 0,
+    "toolConditionChanges": 0
+  },
+  "postApplicationExportVerified": false,
+  "liveTestsExecuted": false
+}

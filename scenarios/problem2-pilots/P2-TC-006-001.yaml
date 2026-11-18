@@ -1,0 +1,145 @@
+# DRAFT BINDING / NOT REVIEWED FOR EXECUTION. No Endpoint authorization.
+# P2-JOURNEYS-0.4: JRN-TC-006 M01-M05/M10; OD-001 declined-retry original target.
+# Qualified Q9-Q13; older elicited entry T05, not the upfront TC-003 exception.
+# Initially unknown authorized access is clarified AFTER observed form absence.
+# Binding/evidence: docs/problem2/PILOT_EXECUTION_PREPARATION.md; CT adoption pending.
+schema_version: 1
+id: P2-TC-006-001
+version: "0.1.0"
+description: Draft original GF elicited older status/request journey with form absent, authorized access clarified, retry explicitly declined, then explicit finish; no submission or transfer.
+product: GrabFood
+country: MY
+concepts:
+  goal_question: ['\b(?:how\s+can\s+i\s+(?:help|assist)|what\s+(?:can\s+i\s+help|would\s+you\s+like|do\s+you\s+need))\b[^.!?\n]*\?']
+  approval: ['\bapproval\s+(?:usually|typically|normally)\s+(?:takes|occurs|happens)\b[^.!?\n;]{0,30}\b(?:one\s+to\s+two|1\s*-\s*2|1\s+to\s+2)\s+(?:business|working)\s+days\b', '\b(?:usually|typically|normally)\s+(?:approved|takes?\b[^.!?\n;]{0,25}\bapproval)\b[^.!?\n;]{0,40}\b(?:one\s+to\s+two|1\s*-\s*2|1\s+to\s+2)\s+(?:business|working)\s+days\b']
+  order_origin: ['\bafter\s+(?:the|your)\s+order\s+was\s+(?:made|placed)\b']
+  payout: ['\bnext\s+(?:regular\s+)?(?:payout|payment)\s+cycle\b']
+  policy: ['\b(?:subject\s+to|under|according\s+to)\b[^.!?\n;]{0,50}\b(?:policy|guidelines)\b']
+  existing_photo: ['\b(?:if\s+you\s+(?:still\s+)?have|keep)\b[^.!?\n;]{0,65}\bphoto\b[^.!?\n;]{0,35}\bprepared\s+food\b']
+  guidance_offer: ['\b(?:would|do)\s+you\s+(?:like|want)\b[^.!?\n]{0,85}\b(?:guide|help|check)\b[^.!?\n]{0,60}\b(?:status|cancelled\s+order)\b[^.!?\n]*\?']
+  preferences_question: ['\b(?:which|what)\b[^.!?\n]{0,40}\b(?:platform|guidance\s+style)\b[^.!?\n]*\?', '\bloudspeaker\b[^.!?\n]*\?']
+  orders: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?orders\b']
+  cancelled: ['\b(?:open|tap|select|choose|go\s+to)\s+(?:the\s+)?cancelled\b']
+  order_question: ['\b(?:can|do)\s+you\s+see\b[^.!?\n]{0,65}\b(?:relevant|cancelled|your|the)\s+order\b[^.!?\n]*\?', '\bis\s+(?:the|your)\s+(?:cancelled\s+)?order\b[^.!?\n]{0,35}\bvisible\b[^.!?\n]*\?']
+  open_order: ['\b(?:open|tap|select|choose)\s+(?:the|your|that|this)\s+(?:(?:relevant|cancelled)\s+)?order\b']
+  status_question: ['\b(?:what|which)\s+(?:compensation\s+)?status\b[^.!?\n]*\?', '\b(?:tell\s+me|read\s+out)\b[^.!?\n]{0,65}\bcompensation\s+status\b']
+  request: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?request\s+for\s+compensation\b']
+  article: ['\b(?:tap|click|open|select|choose)\s+(?:the\s+)?["\x27]?report\s+a\s+payment\s+dispute\b']
+  scroll: ['\bscroll\s+(?:down|through|to)\b']
+  form_question: ['\b(?:can|do)\s+you\s+see\s+(?:the\s+)?(?:(?:request|compensation)\s+)?form\b[^.!?\n]*\?', '\bis\s+(?:the\s+)?(?:(?:request|compensation)\s+)?form\b[^.!?\n]{0,35}\b(?:visible|displayed)\b[^.!?\n]*\?']
+  owner: ['\bowner\b']
+  manager: ['\bmanager\b']
+  role_requirement: ['\b(?:submission|submit\w*)\b[^.!?\n;]{0,65}\b(?:requires?|needs?|only|owner|manager)\b', '\b(?:owner|manager)\b[^.!?\n;]{0,65}\b(?:submit|submission)\b']
+  access_question: ['\b(?:do|can)\s+you\s+(?:have|access|use)\b[^.!?\n]{0,80}\b(?:owner|manager)\b[^.!?\n]*\?', '\bare\s+you\b[^.!?\n]{0,65}\b(?:owner|manager)\b[^.!?\n]*\?']
+  retry_offer: ['\b(?:would|do)\s+you\s+(?:like|want)\b[^.!?\n]{0,65}\b(?:try|retry)\b[^.!?\n]{0,70}\bform\b[^.!?\n]*\?', '\bshall\s+we\b[^.!?\n]{0,65}\b(?:try|retry)\b[^.!?\n]{0,65}\bform\b[^.!?\n]*\?']
+  retry_action: ['(?:^|[.!?,;]\s+)(?:please\s+|now\s+)?(?:log\s+in|sign\s+in|retry|try\s+(?:opening|viewing))\b', '\b(?:you\s+(?:must|need\s+to|should)|please|now|then)\s+(?:log\s+in|sign\s+in|retry|try\s+again)\b', '\b(?:i\s+will|i\x27ll)\s+(?:retry|try\s+again)\b']
+  later_attempt: ['\b(?:can|may|could)\b[^.!?\n;]{0,35}\b(?:try|retry|attempt)\b[^.!?\n;]{0,35}\blater\b']
+  false_role: ['\byou\s+(?:are\s+not|aren\x27t|do\s+not\s+have|don\x27t\s+have)\b[^.!?\n;]{0,45}\b(?:owner|manager)\b']
+  complete_or_submit: ['\b(?:fill\s+in|complete|submit|send|upload|attach)\s+(?:the\s+|your\s+|a\s+)?(?:form|request|order\s+details|photo|evidence)\b']
+  further_help: ['\b(?:anything|something)\s+else\b[^.!?\n]*\?', '\b(?:do\s+you\s+need|can\s+i\s+offer)\s+(?:any\s+)?(?:further|more|other)\s+(?:help|assistance)\b[^.!?\n]*\?']
+  goodbye: ['\b(?:goodbye|thank\s+you\s+for\s+calling|have\s+a\s+(?:nice|good)\s+day)\b']
+  handoff: ['\b(?:connect|transfer)\s+you\b', '\b(?:i\s+will|i\x27ll|let\s+me)\s+(?:connect|transfer)\b', '\b(?:would|do)\s+you\s+(?:like|want)\b[^.!?\n]{0,55}\b(?:speak|talk)\b[^.!?\n]{0,35}\b(?:person|agent|support)\b']
+  wrong_route: ['\b(?:open|use|go\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grabmerchant\s+)?portal\b', '\b(?:open|select|tap)\s+(?:the\s+)?(?:history|finance|transactions|date\s+selector)\b']
+  false_resolution: ['\b(?:your\s+(?:issue|problem|claim)\s+is\s+(?:solved|resolved)|form\s+will\s+(?:definitely\s+)?(?:appear|be\s+visible)|you\s+will\s+be\s+compensated)\b']
+concept_exclusions:
+  orders: &not_action ['\b(?:do\s+not|don\x27t|never)\s+(?:open|tap|select|choose|go|click|scroll|fill|complete|submit|send|upload|attach|log|sign|retry|try)\b[^.!?\n,;]*']
+  cancelled: *not_action
+  open_order: *not_action
+  request: *not_action
+  article: *not_action
+  scroll: *not_action
+  retry_action: *not_action
+  complete_or_submit:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:fill|complete|submit|send|upload|attach)\b[^.!?\n,;]*'
+    - '\b(?:owner|manager)\s+(?:access|authorization)\s+(?:is\s+required|is\s+needed)\s+to\s+submit\s+(?:the\s+|a\s+)?(?:form|request)\b'
+    - '\bto\s+submit\s+(?:the\s+|a\s+)?(?:form|request)\s*[,]?\s+you\s+(?:need|require|must\s+have)\s+(?:authorized\s+)?(?:owner|manager)\b'
+  wrong_route: *not_action
+  false_role: ['\b(?:if|whether)\b[^.!?\n,;]*']
+  handoff: ['\b(?:will\s+not|won\x27t|cannot|can\x27t|do\s+not|don\x27t)\s+(?:connect|transfer)\b[^.!?\n,;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Retain one current-order conversation.}
+  - {id: no-handoff, type: forbidden, concepts: [handoff], reason: Primary TC-006 declines retry; this is not a failed accepted retry or transfer branch.}
+  - {id: no-submission, type: forbidden, concepts: [complete_or_submit], reason: M06-M09 do not execute in the declined-retry primary fixture.}
+  - {id: app-target, type: forbidden, concepts: [wrong_route], reason: Visible order and present App link do not trigger History or Portal fallback.}
+  - {id: no-inferred-role, type: forbidden, concepts: [false_role], reason: Missing form is not proof of missing authorization.}
+  - {id: no-false-resolution, type: forbidden, concepts: [false_resolution], reason: Retry refusal does not resolve the claim or guarantee later visibility.}
+turns:
+  - id: older-age-only
+    merchant: "I'm a GrabFood merchant in Malaysia. My order was cancelled 14 days ago."
+    advance_when: [next-step, wait-for-goal, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [goal_question], reason: M01/T02 elicit the goal once and wait; no upfront navigation intent is supplied.}
+      - {id: wait-for-goal, type: forbidden, concepts: [approval, payout, existing_photo, guidance_offer, preferences_question, orders, cancelled, request, article, scroll, goodbye], reason: Preserve older age-only entry before education or navigation.}
+  - id: elicited-dual-goal
+    merchant: "I'd like to check this order's compensation status and submit a request for review if needed."
+    advance_when: [education, education-order, offer, wait-for-consent, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: education, type: required, concepts: [approval, order_origin, payout, policy, existing_photo], reason: M01/T05 requires qualified GF education and existing-photo reminder on elicited dual entry; literal wording adoption is separate.}
+      - {id: education-order, type: ordered, steps: [approval, payout, existing_photo, guidance_offer], reason: Preserve education then existing-photo reminder then the separate guidance offer.}
+      - {id: offer, type: required, concepts: [guidance_offer], reason: Elicited dual intent retains the applicable offer and its separate acceptance.}
+      - {id: wait-for-consent, type: forbidden, concepts: [orders, cancelled, open_order, request, article, scroll, goodbye], reason: No navigation action before the offered guidance is accepted.}
+  - id: guidance-accepted
+    merchant: "Yes, please guide me. I'm on the GrabMerchant app home screen. One step at a time, please; no loudspeaker."
+    advance_when: [next-step, one-action, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [orders], reason: M01 begin the chosen App route after guidance acceptance and supplied preferences.}
+      - {id: one-action, type: forbidden, concepts: [cancelled, order_question, open_order, status_question, request, article, scroll, retry_offer, goodbye], reason: Wait for Orders completion before further navigation.}
+  - id: orders-open
+    merchant: "Orders is open. What is next?"
+    advance_when: [next-step, one-action, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [cancelled], reason: M01 navigate to Cancelled.}
+      - {id: one-action, type: forbidden, concepts: [orders, order_question, open_order, status_question, request, article, scroll, retry_offer, goodbye], reason: Wait for Cancelled completion.}
+  - id: cancelled-open
+    merchant: "Cancelled is open."
+    advance_when: [next-step, one-action, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [order_question], reason: Establish actual order visibility before deciding on any missing-order route.}
+      - {id: one-action, type: forbidden, concepts: [orders, cancelled, open_order, status_question, request, article, scroll, retry_offer, goodbye], reason: Wait for visibility rather than inventing it.}
+  - id: order-visible
+    merchant: "I can see the cancelled order in the list."
+    advance_when: [next-step, one-action, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [open_order, status_question], reason: Open the visible order and ask for its compensation status.}
+      - {id: one-action, type: forbidden, concepts: [orders, cancelled, request, article, scroll, retry_offer, goodbye], reason: Wait for status before the review-request entry.}
+  - id: blank-status-link-present
+    merchant: "The details are open. No compensation status is displayed; it is blank. I still want to request review. Request for compensation is visible."
+    advance_when: [next-step, one-action, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [request], reason: M02 follow the present App request link after explicit blank status and retained intent.}
+      - {id: one-action, type: forbidden, concepts: [open_order, article, scroll, form_question, access_question, retry_offer, goodbye], reason: Link opening precedes article and form-access observations.}
+  - id: request-link-opened
+    merchant: "I tapped Request for compensation. Report a payment dispute is visible."
+    advance_when: [next-step, one-action, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [article], reason: M02 open the article before scrolling or role recovery.}
+      - {id: one-action, type: forbidden, concepts: [request, scroll, form_question, access_question, retry_offer, goodbye], reason: Wait for article opening.}
+  - id: article-opened
+    merchant: "Report a payment dispute is open."
+    advance_when: [next-step, wait-for-form, no-handoff, no-submission, app-target]
+    assertions:
+      - {id: next-step, type: required, concepts: [scroll, form_question], reason: M03 request a form observation after scrolling rather than assume form access.}
+      - {id: wait-for-form, type: forbidden, concepts: [request, article, access_question, retry_offer, retry_action, goodbye], reason: Establish form absence before access recovery or retry.}
+  - id: form-absent
+    merchant: "I scrolled down, but the request form is not visible."
+    advance_when: [next-step, wait-for-access, no-handoff, no-submission, app-target, no-inferred-role]
+    assertions:
+      - {id: next-step, type: required, concepts: [owner, manager, role_requirement, access_question], reason: M04 explain authorized submission access and ask about actual availability; initially unknown to the Agent.}
+      - {id: wait-for-access, type: forbidden, concepts: [request, article, scroll, retry_offer, retry_action, goodbye], reason: Authorization clarification is not consent to a retry.}
+  - id: authorized-access-confirmed
+    merchant: "I have authorized Owner access available for this store. I haven't retried opening the form."
+    advance_when: [next-step, wait-for-retry-consent, no-handoff, no-submission, app-target, no-inferred-role]
+    assertions:
+      - {id: next-step, type: required, concepts: [retry_offer], reason: M05 offer one form-access retry as a separate choice after access is known.}
+      - {id: wait-for-retry-consent, type: forbidden, concepts: [request, article, scroll, retry_action, goodbye], reason: Do not issue retry or login actions before acceptance.}
+  - id: retry-declined
+    merchant: "No, I don't want to retry opening the form."
+    advance_when: [next-step, respect-decline, no-handoff, no-submission, app-target, no-false-resolution]
+    assertions:
+      - {id: next-step, type: required, concepts: [later_attempt, owner, manager, further_help], reason: M10 give bounded later-attempt advice using authorized access and ask further help; no guaranteed form visibility.}
+      - {id: respect-decline, type: forbidden, concepts: [request, article, scroll, retry_offer, retry_action, goodbye], reason: Refusal means no retry or transfer; wait for an explicit finish.}
+  - id: explicit-finish
+    merchant: "No, I don't need any further help. Thank you."
+    assertions:
+      - {id: closing-text, type: required, concepts: [goodbye], reason: Screen the ordinary closing only; actual Flow-owned terminal needs external evidence.}
+      - {id: no-restart, type: forbidden, concepts: [orders, request, article, scroll, retry_offer, retry_action, further_help], reason: Respect finish without reopening retry or navigation.}

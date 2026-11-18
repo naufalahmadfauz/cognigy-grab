@@ -1,0 +1,34 @@
+# KB articles: UC4-MY-SHARED-DEADLINES-001
+# C01: unresolved 90-day applicability; C02: separate response and bank-credit stages.
+schema_version: 1
+id: KB-DEADLINES-001
+version: "0.1.0"
+description: Unresolved enquiry applicability and separate response/bank-credit periods are not a payment SLA.
+product: GrabMart
+country: MY
+concepts:
+  uncertainty: ['\b(?:unconfirmed|unresolved|not\s+(?:yet\s+)?confirmed|cannot\s+confirm|can\x27t\s+confirm|do\s+not\s+have\b[^.!?\n]{0,35}\bconfirm\w*)\b']
+  review: ['\b(?:review|enquir\w*|inquir\w*|support)\b']
+  age_denial: ['\b(?:automatically\s+ineligible|automatically\s+rejected|too\s+late\s+to\s+submit)\b', '\b(?:cannot|can\x27t)\s+submit\b[^.!?\n]{0,55}\b(?:90|ninety)\s+days?\b']
+  unlimited: ['\b(?:submit|submission)\b[^.!?\n]{0,50}\b(?:indefinitely|unlimited|always\s+accepted)\b']
+  response: ['\b(?:investigation|investigate|response|respond|referral)\b']
+  bank: ['\bbank\s+(?:credit|receipt)\b', '\bcredit\w*\b[^.!?\n]{0,30}\bbank\b']
+  separate: ['\b(?:separate|different|distinct)\b']
+  total_promise: ['\b(?:paid|payment|compensation)\b[^.!?\n]{0,40}\b(?:guaranteed|definitely)\b', '\b(?:will|must)\s+(?:be\s+)?(?:paid|arrive|receive)\b[^.!?\n]{0,45}\b(?:8|eight)\s+(?:(?:business|working)\s+)?days?\b']
+concept_exclusions:
+  age_denial: ['\b(?:not|does\s+not|doesn\x27t|cannot\s+conclude)\b[^.!?\n;]*']
+  unlimited: ['\b(?:not|no|cannot|can\x27t)\b[^.!?\n;]*']
+  total_promise: ['\b(?:not|no|cannot|can\x27t|does\s+not|doesn\x27t)\b[^.!?\n;]*']
+assertions:
+  - {id: identity, type: session_continuity, reason: Keep the cancelled-order compensation enquiry context.}
+turns:
+  - id: ninety-day-applicability
+    merchant: "I'm a GrabMart merchant in Malaysia. My order was cancelled 91 days ago. I heard about a 90-day enquiry window. Can you confirm that I am automatically ineligible now, or that I can submit without any time limit?"
+    assertions:
+      - {id: acknowledge-uncertain-applicability, type: required, concepts: [uncertainty, review], reason: The source leaves UC4 applicability unresolved and supports review rather than an invented determination.}
+      - {id: no-invented-deadline-policy, type: forbidden, concepts: [age_denial, unlimited], reason: Neither automatic rejection after 90 days nor indefinite submission rights are established.}
+  - id: response-versus-payment
+    merchant: "For that compensation enquiry, I also heard five working days for investigation and at least three business days for bank credit. Does adding those mean a guaranteed eight-day total payment time?"
+    assertions:
+      - {id: separate-uncertain-stages, type: required, concepts: [response, bank, separate, uncertainty], reason: Investigation and bank credit describe different stages with unconfirmed UC4 applicability.}
+      - {id: no-total-payment-sla, type: forbidden, concepts: [total_promise], reason: Do not add the periods into a guaranteed payment deadline or replace product approval timing.}

@@ -1,0 +1,22 @@
+{
+  "mode": "OFFLINE_CANDIDATE_ONLY",
+  "targetFlow": "UC4_KB_AGENT_POC_v03",
+  "targetJobReference": "e38e5029-d515-4002-ad03-dd99b0eb821e",
+  "baselineMembersCompared": 76,
+  "changedFields": [
+    "nodeData/6ae34b2cb869e882e5729714/localizedData/0/config/instructions"
+  ],
+  "unchangedMembers": 75,
+  "unchangedOtherPocNodes": 30,
+  "unchangedSharedEntries": 39,
+  "diffHunks": 3,
+  "reverseInsertionRestoresOriginalBytes": true,
+  "diffReconstructsCandidate": true,
+  "approvedJobMatchesExportAfterNewlineNormalization": true,
+  "sourceFilesPreserved": 151,
+  "historicalReportFilesPreserved": 442,
+  "mainIncludedInBaseline": false,
+  "liveRootCauseVerified": false,
+  "applicationVerified": false,
+  "liveRequests": 0
+}

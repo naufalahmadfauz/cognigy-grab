@@ -1,9 +1,10 @@
 # UC4 Automated Test Runner v0.2.0
 
 A standalone Python CLI for repeated Cognigy REST conversations, deterministic
-behavior checks, and redacted evidence reports. Includes two Malaysia GrabMart scenarios:
-`GM-CONTINUITY-001` for approval timing/status location and `GM-PORTAL-STEPS-001`
-for guarded, one-by-one Portal guidance.
+behavior checks, and redacted evidence reports. Includes three Malaysia GrabMart scenarios:
+`GM-CONTINUITY-001` for approval timing/status location, `GM-PORTAL-STEPS-001`
+for the two-step guarded Portal demonstration, and `GM-PORTAL-STATUS-FULL-001`
+for the complete five-turn, one-by-one status journey.
 
 ## Install
 
@@ -66,9 +67,10 @@ python -m uc4_runner run --scenario GM-CONTINUITY-001 --repeat 5
 
 Validation and dry-run work without an Endpoint or network access. Dry-run creates
 five planned conversations with fresh identities and **no simulated Agent replies**;
-outcomes and pass rates are null, not passes. Both packaged scenarios send two
-sequential POSTs on full execution. Each repetition has independent user/session IDs and a
-fresh HTTP client; IDs remain constant across its turns.
+outcomes and pass rates are null, not passes. The continuity and Portal demo scenarios
+each send two sequential POSTs on full execution; the complete Portal status scenario
+sends five. Each repetition has independent user/session IDs and a fresh HTTP client;
+IDs remain constant across its turns.
 
 Optional flags: `--scenario-file path.yaml`, `--scenarios-dir path`,
 `--output-dir reports`, `--concurrency 2`. Validation accepts `--scenario-file` or
@@ -85,6 +87,46 @@ only after a Finance instruction satisfies the gate, then expects a Transactions
 instruction. Add `--dry-run` to inspect five plans offline.
 
 When configuring guarded turns, read [advancement conditions](docs/TESTING_GUIDELINES.md#advancement-conditions).
+When investigating a stopped run, use [gate evidence](docs/ARCHITECTURE.md#gate-evidence)
+to trace the failing assertion and unsent turns.
+
+## Complete Portal status journey
+
+`GM-PORTAL-STATUS-FULL-001` starts with a GrabMart merchant already signed into the
+Portal. It expects Finance → acknowledgment → Transactions → acknowledgment →
+time period covering the order date **and** applicable store → acknowledgment →
+Category: Compensation for cancelled orders → acknowledgment → a separate question
+whether the order appears there as compensated.
+
+The first four replies have advancement gates. A missing step, combined action,
+App substitution, or submission detour stops that run before its next scripted
+acknowledgment. The final status question is graded normally. See the
+[complete-journey rubric](docs/TESTING_GUIDELINES.md#gm-portal-status-full-001-rubric).
+
+Offline preparation:
+
+```powershell
+.\.venv\Scripts\python.exe -m uc4_runner validate --scenario-file uc4_runner/scenarios/GM-PORTAL-STATUS-FULL-001.yaml
+.\.venv\Scripts\python.exe -m uc4_runner run --scenario GM-PORTAL-STATUS-FULL-001 --repeat 5 --dry-run
+```
+
+For **future authorized live execution**, run:
+
+```powershell
+.\.venv\Scripts\python.exe -m uc4_runner run --scenario GM-PORTAL-STATUS-FULL-001 --repeat 5
+```
+
+Expect the [normal batch reports](#reports): `manifest.json`, `scenario.json`,
+`aggregate.json`, `summary.md`, `transcripts.json`, five `runs/run-00N.json` files,
+and five `transcripts/run-00N.md` files (`N` = 1–5). A complete live journey batch
+has 25 executed turns; gate/transport stops reduce that count and label remaining
+turns SKIPPED. A dry-run has 25 PLANNED turns, zero requests, and null grades/gates.
+
+The observed notice, “Please note that compensation will be partial, based on the
+assessment of the perishable items,” is retained in replies and reported as
+`partial-compensation-policy-review` (WARN). Otherwise compliant runs containing it
+are `PASS_WITH_WARNINGS`; it never blocks a gate. Its potentially overconfident
+wording needs separate human policy review.
 
 ## Regrade saved evidence offline
 
@@ -125,11 +167,9 @@ in. Raw evidence is structurally complete **subject to redaction**, not byte-exa
 The combined top-level Cognigy `text` is used once, without appending `outputStack`.
 For response-to-transcript rules, read [normalization](docs/ARCHITECTURE.md#normalization).
 
-`PASS_WITH_WARNINGS` counts toward the behavioral pass rate. `ERROR` runs are
-excluded from the complete-conversation behavioral denominator and counted in
-Endpoint reliability. Partial observations and skipped turns remain visible.
-Aggregate reports also show strict passes, end-to-end passes, HTTP success, and
-usable-reply rates. A successful HTTP status alone never gives a behavioral pass.
+To interpret grades and transcripts, use [outcome interpretation](docs/TESTING_GUIDELINES.md#outcomes-and-report-interpretation).
+To calculate rates, use [reliability denominators](docs/ARCHITECTURE.md#evidence-and-reliability),
+including how gate-stopped runs and skipped turns count.
 
 Exit codes: **0** pass / pass with warnings / valid dry-run; **1** behavioral fail;
 **2** usage, configuration, validation, or transport/protocol error; **130** interrupted.

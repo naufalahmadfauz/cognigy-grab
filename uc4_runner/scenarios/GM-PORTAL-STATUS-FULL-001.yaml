@@ -1,0 +1,154 @@
+schema_version: 1
+id: GM-PORTAL-STATUS-FULL-001
+version: "0.2.1"
+description: Complete one-by-one GrabMart Portal status navigation, with four guarded acknowledgments and a separate final status-observation question.
+product: GrabMart
+country: MY
+
+# Business source: GRABMART PORTAL — COMPENSATION STATUS / ONE-BY-ONE
+# SEGMENTATION in flow/poc-correction-2026-10-29/01-job-instructions.txt.
+# Period plus store is one action; Category and status observation are separate.
+# Bare labels cannot satisfy required instructions. These are English wording checks.
+concepts:
+  finance_instruction:
+    - '\b(?:open|select|choose|click(?:\s+on)?|tap(?:\s+on)?|go\s+(?:to|into)|navigate\s+to)\s+(?:the\s+)?finance\b'
+  transactions_instruction:
+    - '\b(?:open|select|choose|click(?:\s+on)?|tap(?:\s+on)?|go\s+(?:to|into)|navigate\s+to)\s+(?:the\s+)?transactions?\b'
+  transactions:
+    - '\btransactions?\b'
+  time_period:
+    - '\b(?:(?:time|date)\s+(?:period|range)|date\s+filter)\b'
+  time_period_instruction:
+    - '\b(?:select|choose|pick|set|adjust)\s+(?:the\s+|a\s+|your\s+)?(?:(?:appropriate|applicable|relevant)\s+)?(?:time|date)\s+(?:period|range)\b'
+    - '\b(?:select|choose|pick|set)\s+(?:the\s+|your\s+)?(?:(?:applicable|correct|relevant|appropriate)\s+)?stores?\s+and\s+(?:the\s+|a\s+|your\s+)?(?:time|date)\s+(?:period|range)\b'
+  order_date_coverage:
+    - '\b(?:time|date)\s+(?:period|range)\b[^.!?\n;]{0,60}\b(?:cover(?:s|ing)?|includ(?:e|es|ing)|contain(?:s|ing)?)\s+(?:(?:the|your|that)\s+)?(?:cancelled\s+)?order(?:\x27s)?\s+date\b'
+    - '\b(?:time|date)\s+(?:period|range)\b[^.!?\n;]{0,60}\b(?:cover(?:s|ing)?|includ(?:e|es|ing)|contain(?:s|ing)?)\s+(?:the\s+)?date\s+(?:of\s+(?:(?:the|your)\s+)?order|(?:when\s+)?(?:the|your)\s+order\s+was\s+placed)\b'
+  store_instruction:
+    - '\b(?:select|choose|pick|set)\s+(?:the\s+|your\s+)?(?:(?:applicable|correct|relevant|appropriate)\s+)?stores?\b'
+    - '\b(?:select|choose|pick|set)\s+(?:the\s+|a\s+|your\s+)?(?:time|date)\s+(?:period|range)\b[^.!?\n;]{0,100}\band\s+(?:the\s+|your\s+)?(?:(?:applicable|correct|relevant|appropriate)\s+)?stores?\b'
+  category:
+    - '\bcategory\b'
+  cancelled_compensation:
+    - '\bcompensation\s+for\s+cancell?ed\s+orders?\b'
+  cancelled_compensation_instruction:
+    - '\b(?:select|choose|pick|click(?:\s+on)?|tap(?:\s+on)?)\s+(?:the\s+)?(?:["\x27\u201c\u201d]\s*)?compensation\s+for\s+cancell?ed\s+orders?\b'
+  status_observation:
+    - '\b(?:does|is|can\s+you|do\s+you|have\s+you)\b[^.!?\n]{0,100}\b(?:order|it)\b[^.!?\n]{0,100}\b(?:appear\w*|show\w*|listed|marked|visible|displayed|compensated|there)\b[^.!?\n]*\?'
+    - '\b(?:check|confirm|tell\s+me|let\s+me\s+know)\s+(?:if|whether)\b[^.!?\n]{0,100}\b(?:order|it)\b[^.!?\n]{0,100}\b(?:appear\w*|show\w*|listed|marked|visible|displayed|compensated|there)\b'
+    - '\bwhat\s+(?:compensation\s+)?status\b[^.!?\n]{0,100}\?'
+  compensated_observation_question:
+    - '\b(?:does|is|can\s+you\s+(?:see|check|confirm)|do\s+you\s+see)\b[^.!?\n]{0,100}\b(?:order|it)\b[^.!?\n]{0,60}\b(?:appear\w*|show\w*|listed|marked|displayed)\b\s+(?:up\s+)?(?:there\s+)?(?:as\s+)?compensated\b[^.!?\n]{0,30}\?'
+    - '\b(?:do|can)\s+you\s+see\b[^.!?\n]{0,80}\b(?:order|it)\b\s+(?:there\s+)?as\s+compensated\b[^.!?\n]{0,30}\?'
+    - '\b(?:check|confirm|tell\s+me|let\s+me\s+know)\s+(?:if|whether)\b[^.!?\n]{0,100}\b(?:order|it)\b[^.!?\n]{0,60}\b(?:appear\w*|show\w*|listed|marked|displayed)\b\s+(?:up\s+)?(?:there\s+)?(?:as\s+)?compensated\b'
+  app_route:
+    - '\b(?:open|use|launch|tap(?:\s+on)?|go\s+to|log\s+in\s+to)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+    - '\b(?:check|view|track|find|look\s+for)\b[^.!?\n,;]{0,100}\b(?:in|on|through|via|using)\s+(?:the\s+)?(?:grab\s*merchant|grab\s*food|merchant|grab)\s+(?:mobile\s+)?app\b'
+    - '\b(?:grab\s*merchant|grab\s*food)\s+app\s*(?:>|->|→)\s*\w+'
+  submission_instruction:
+    - '\b(?:open|select|choose|click(?:\s+on)?|go\s+to)\s+(?:the\s+)?(?:help\s+cent(?:re|er)|request\s+for\s+compensation|(?:compensation\s+)?form)\b'
+    - '\b(?:submit|file)\s+(?:a\s+|the\s+|your\s+)?(?:compensation\s+)?(?:request|claim|form)\b'
+    - '\bupload\s+(?:the\s+|your\s+)?(?:evidence|photos?)\b'
+  partial_compensation_notice:
+    - '\bcompensation\s+(?:will\s+be|is\s+going\s+to\s+be)\s+partial\b'
+
+# Local negation must not turn a prohibited action into a usable instruction.
+concept_exclusions:
+  finance_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|select|choose|click|tap|go|navigate)\b[^.!?\n,;]*'
+  transactions_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|select|choose|click|tap|go|navigate)\b[^.!?\n,;]*'
+  time_period_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:select|choose|pick|set|adjust)\b[^.!?\n,;]*'
+  order_date_coverage:
+    - '\b(?:not|never|without)\s+(?:cover\w*|includ\w*|contain\w*)\b[^.!?\n,;]*'
+  store_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:select|choose|pick|set)\b[^.!?\n,;]*'
+  cancelled_compensation_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:select|choose|pick|click|tap)\b[^.!?\n,;]*'
+  compensated_observation_question:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:check|confirm|tell|let)\b[^.!?\n,;]*'
+  app_route:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|use|launch|tap|check|view|track|find|look|go|log)\b[^.!?\n,;]*'
+  submission_instruction:
+    - '\b(?:do\s+not|don\x27t|never)\s+(?:open|select|choose|click|go|submit|file|upload)\b[^.!?\n,;]*'
+
+assertions:
+  - id: identity-continuity
+    type: session_continuity
+    reason: Preserve the same merchant conversation identity.
+  - id: no-app-substitution
+    type: forbidden
+    concepts: [app_route]
+    reason: Keep the GrabMart status journey in the GrabMerchant Portal.
+  - id: no-submission-navigation
+    type: forbidden
+    concepts: [submission_instruction]
+    reason: Wait for the status observation before any submission navigation.
+  - id: partial-compensation-policy-review
+    type: forbidden
+    severity: warning
+    concepts: [partial_compensation_notice]
+    reason: "Human policy review: the observed POC notice says compensation will be partial before eligibility or an award is established. Preserve this wording as evidence; it does not block navigation."
+
+turns:
+  - id: open-finance
+    merchant: "I'm a GrabMart merchant in Malaysia, already signed into GrabMerchant Portal. Help me find my cancelled-order compensation status one step at a time. Give only the first navigation step and wait for me to say Done."
+    advance_when: [finance-step, one-step-only, no-app-substitution, no-submission-navigation]
+    assertions:
+      - id: finance-step
+        type: required
+        concepts: [finance_instruction]
+        reason: Instruct the merchant to open Finance.
+      - id: one-step-only
+        type: forbidden
+        concepts: [transactions, time_period, store_instruction, category, cancelled_compensation, status_observation]
+        reason: Give only Finance and wait for acknowledgment before later navigation or status observation.
+  - id: open-transactions
+    merchant: "Done. Finance is open. What is the next single navigation step?"
+    advance_when: [transactions-step, one-step-only, no-app-substitution, no-submission-navigation]
+    assertions:
+      - id: transactions-step
+        type: required
+        concepts: [transactions_instruction]
+        reason: Instruct the merchant to open Transactions after Finance.
+      - id: one-step-only
+        type: forbidden
+        concepts: [finance_instruction, time_period, store_instruction, category, cancelled_compensation, status_observation]
+        reason: Give only Transactions and wait before selecting filters or observing status.
+  - id: select-period-store
+    merchant: "Done. Transactions is open. What is the next single navigation step?"
+    advance_when: [period-and-store-step, one-step-only, no-app-substitution, no-submission-navigation]
+    assertions:
+      - id: period-and-store-step
+        type: required
+        concepts: [time_period_instruction, order_date_coverage, store_instruction]
+        reason: Instruct selection of a time period covering the order date and the applicable store.
+      - id: one-step-only
+        type: forbidden
+        concepts: [finance_instruction, transactions_instruction, category, cancelled_compensation, status_observation]
+        reason: Period and store share one action; wait before Category or the status-observation question.
+  - id: select-category
+    merchant: "Done. The time period covers the order date and the applicable store is selected. What is the next single navigation step?"
+    advance_when: [category-step, one-step-only, no-app-substitution, no-submission-navigation]
+    assertions:
+      - id: category-step
+        type: required
+        concepts: [category, cancelled_compensation_instruction]
+        reason: Under Category, instruct selection of Compensation for cancelled orders.
+      - id: one-step-only
+        type: forbidden
+        concepts: [finance_instruction, transactions_instruction, time_period_instruction, store_instruction, status_observation]
+        reason: Give only Category selection; wait before asking whether the order appears compensated.
+  - id: observe-status
+    merchant: "Done. Compensation for cancelled orders is selected under Category."
+    # Final turns cannot have advance_when; this reply is graded independently.
+    assertions:
+      - id: compensated-status-question
+        type: required
+        concepts: [compensated_observation_question]
+        reason: Ask whether the cancelled order appears there as compensated, then wait for the merchant's observation.
+      - id: observation-only
+        type: forbidden
+        concepts: [finance_instruction, transactions_instruction, time_period_instruction, store_instruction, cancelled_compensation_instruction]
+        reason: Ask only for the status observation; do not repeat completed navigation actions.

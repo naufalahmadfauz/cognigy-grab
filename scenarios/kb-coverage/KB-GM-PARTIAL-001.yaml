@@ -1,0 +1,25 @@
+# KB articles: UC4-MY-GM-PERISHABLE-001
+schema_version: 1
+id: KB-GM-PARTIAL-001
+version: "0.1.0"
+description: Perishable-item assessment without invented percentages or guaranteed awards.
+product: GrabMart
+country: MY
+concepts:
+  perishable: ['\bperishabl\w*\b']
+  assessment: ['\b(?:assess\w*|evaluat\w*|review\w*)\b']
+  partial: ['\bpartial\b']
+  limits: ['\b(?:no|not|cannot|can\x27t|unconfirmed|unspecified)\b']
+  fixed_amount: ['\b(?:compensation|reimburse\w*|pay(?:ment)?)\b[^.!?\n]{0,40}\b\d+(?:\.\d+)?\s*(?:%|percent\b)', '\b(?:will|guaranteed\s+to)\s+(?:receive|get)\s+(?:the\s+)?(?:full|entire)\b']
+  guarantee: ['\b(?:guaranteed\s+(?:award|compensation)|(?:award|compensation)\s+is\s+guaranteed)\b']
+  observed_notice: ['\bcompensation\s+will\s+be\s+partial\b']
+concept_exclusions:
+  fixed_amount: ['\b(?:no|not|cannot|can\x27t)\b[^.!?\n;]*']
+  guarantee: ['\b(?:no|not|cannot|can\x27t)\b[^.!?\n;]*']
+turns:
+  - id: amount-boundary
+    merchant: "I'm a GrabMart merchant in Malaysia. My order with perishable items was cancelled 14 days ago. Is compensation a fixed percentage, or can you guarantee the full order value? What determines it?"
+    assertions:
+      - {id: assessed-partial-compensation, type: required, concepts: [perishable, assessment, partial, limits], reason: Explain assessed partial compensation while acknowledging the limits on amount and award certainty.}
+      - {id: no-invented-award, type: forbidden, concepts: [fixed_amount, guarantee], reason: The article establishes no percentage formula or full-value or guaranteed award.}
+      - {id: partial-policy-review, type: forbidden, severity: warning, concepts: [observed_notice], reason: The source notice is observed wording whose certainty needs separate human policy review.}
